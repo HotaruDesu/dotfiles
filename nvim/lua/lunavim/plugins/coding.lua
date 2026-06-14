@@ -2,8 +2,8 @@ return {
   -- CMP
   {
     "saghen/blink.cmp",
-    -- optional: provides snippets for the snippet source
     dependencies = {
+      -- snippets
       "rafamadriz/friendly-snippets",
       -- ripgrep
       "mikavilpas/blink-ripgrep.nvim",
@@ -11,15 +11,11 @@ return {
       "Kaiser-Yang/blink-cmp-dictionary",
       -- git
       "Kaiser-Yang/blink-cmp-git",
-      -- luasnip
-      { "L3MON4D3/LuaSnip", version = "v2.*" },
     },
     version = "1.*",
     opts = {
       enabled = function()
-        return not vim.tbl_contains({ "oil" }, vim.bo.buftype)
-          and vim.bo.buftype ~= "prompt"
-          and vim.b.completion ~= false
+        return vim.bo.filetype ~= "oil" and vim.bo.buftype ~= "prompt" and vim.b.completion ~= false
       end,
       keymap = {
         preset = "default",
@@ -32,64 +28,115 @@ return {
         ["<C-d>"] = { "scroll_signature_down", "fallback" },
         ["<C-e>"] = { "hide" },
         ["<CR>"] = { "accept", "fallback" },
-        ["<Tab>"] = { "select_next", "fallback" },
-        ["<S-Tab>"] = { "select_prev", "fallback" },
+        ["<Tab>"] = { "snippet_forward", "fallback" },
+        ["<S-Tab>"] = { "snippet_backward", "fallback" },
       },
-
       appearance = {
-        -- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
-        -- Adjusts spacing to ensure icons are aligned
         nerd_font_variant = "mono",
       },
-
       completion = {
         menu = {
           auto_show = true,
           border = "rounded",
-        },
-        documentation = { window = { border = "rounded" } },
-        list = {
-          selection = {
-            preselect = false,
-            auto_insert = true,
+          draw = {
+            padding = 1,
+            treesitter = { "lsp" },
+            columns = {
+              { "item_idx" },
+              { "kind_icon" },
+              { "label", "label_description", gap = 1 },
+              { "source_name" },
+            },
+            components = {
+              item_idx = {
+                text = function(ctx)
+                  return tostring(ctx.idx)
+                end,
+                highlight = "BlinkCmpItemIdx", -- optional, only if you want to change its color
+              },
+              source_name = {
+                width = { max = 15 },
+                text = function(ctx)
+                  return "[" .. ctx.source_name .. "]"
+                end,
+                highlight = function(ctx)
+                  return ctx.kind_hl
+                end,
+              },
+            },
           },
+        },
+        accept = {
+          auto_brackets = { enabled = true },
+        },
+        documentation = {
+          window = { border = "rounded" },
+        },
+        list = {
+          selection = { preselect = false, auto_insert = true },
         },
         ghost_text = { enabled = true },
       },
-
-      signature = { enabled = true, window = { border = "rounded" } },
-
+      fuzzy = {
+        sorts = {
+          "exact",
+          "score",
+          "sort_text",
+          "label",
+        },
+      },
+      signature = {
+        enabled = true,
+        trigger = {
+          show_on_insert = true,
+        },
+        window = { border = "rounded" },
+      },
       sources = {
         default = {
           "lsp",
-          "snippets",
           "path",
-          "buffer",
+          "snippets",
           "lazydev",
-          "ripgrep",
+        },
+        per_filetype = {
+          gitcommit = { "git", "lsp", "snippets", "path", "buffer" },
+          NeogitCommitMessage = { "git", "lsp", "snippets", "path", "buffer" },
+          -- markdown = { "git", "lsp", "snippets", "path", "buffer", "dictionary" },
         },
         providers = {
           lsp = {
-            name = 'LSP',
-            module = 'blink.cmp.sources.lsp',
+            name = "LSP",
+            module = "blink.cmp.sources.lsp",
+            fallbacks = {
+              "buffer",
+              "ripgrep",
+            },
+            score_offset = 100,
             transform_items = function(_, items)
               return vim.tbl_filter(function(item)
-                return item.kind ~= require('blink.cmp.types').CompletionItemKind.Keyword
+                local kind = require("blink.cmp.types").CompletionItemKind
+                -- return item.kind ~= kind.Keyword
+                return item.kind ~= kind.Text
               end, items)
             end,
-            score_offset = 100,
+          },
+          buffer = {
+            name = "Buffer",
+            module = "blink.cmp.sources.buffer",
+            min_keyword_length = 3,
           },
           ripgrep = {
-            module = "blink-ripgrep",
             name = "Ripgrep",
-            opts = {},
+            module = "blink-ripgrep",
+            min_keyword_length = 3,
+            score_offset = -1,
             transform_items = function(_, items)
               for _, item in ipairs(items) do
                 item.labelDetails = { description = "(rg)" }
               end
               return items
             end,
-            score_offset = -1,
           },
           dictionary = {
             module = "blink-cmp-dictionary",
@@ -111,11 +158,47 @@ return {
           },
         },
       },
-      snippets = {
-        preset = "luasnip",
-        expand = function(snippet)
-          require("luasnip").lsp_expand(snippet)
+      snippets = {},
+      cmdline = {
+        enabled = true,
+        keymap = { preset = "cmdline" },
+        sources = function()
+          local type = vim.fn.getcmdtype()
+          -- Search forward and backward
+          if type == "/" or type == "?" then
+            return { "buffer" }
+          end
+          -- Commands
+          if type == ":" or type == "@" then
+            return { "cmdline", "buffer" }
+          end
+          return {}
         end,
+
+        completion = {
+          trigger = {},
+          list = {
+            selection = {
+              preselect = false,
+              auto_insert = true,
+            },
+          },
+          -- Whether to automatically show the window when new completion items are available
+          -- Default is false for cmdline, true for cmdwin (command-line window)
+          menu = {
+            auto_show = function(ctx, _)
+              return ctx.mode == "cmdwin"
+            end,
+          },
+          ghost_text = { enabled = true },
+          documentation = {
+            auto_show = true,
+            auto_show_delay_ms = 250,
+            window = {
+              border = "rounded",
+            },
+          },
+        },
       },
     },
   },

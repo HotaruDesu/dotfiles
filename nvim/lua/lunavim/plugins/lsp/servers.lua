@@ -30,6 +30,7 @@ M.clangd = {
     })
     on_dir(root)
   end,
+  capabilities = require('blink.cmp').get_lsp_capabilities(),
   cmd = {
     get_clangd_path(),
     "--background-index", -- create index in background
