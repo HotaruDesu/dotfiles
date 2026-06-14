@@ -124,12 +124,12 @@ return {
           buffer = {
             name = "Buffer",
             module = "blink.cmp.sources.buffer",
-            min_keyword_length = 3,
+            min_keyword_length = 2,
           },
           ripgrep = {
             name = "Ripgrep",
             module = "blink-ripgrep",
-            min_keyword_length = 3,
+            min_keyword_length = 2,
             score_offset = -1,
             transform_items = function(_, items)
               for _, item in ipairs(items) do
@@ -141,7 +141,7 @@ return {
           dictionary = {
             module = "blink-cmp-dictionary",
             name = "Dict",
-            min_keyword_length = 3,
+            min_keyword_length = 2,
             opts = {},
             score_offset = 0,
           },
@@ -174,12 +174,11 @@ return {
           end
           return {}
         end,
-
         completion = {
           trigger = {},
           list = {
             selection = {
-              preselect = false,
+              preselect = true,
               auto_insert = true,
             },
           },
