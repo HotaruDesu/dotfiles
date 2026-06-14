@@ -102,14 +102,6 @@ return {
     },
   },
   {
-    "smjonas/inc-rename.nvim",
-    event = "LspAttach",
-    cmd = "IncRename",
-    opts = {
-      input_buffer_type = "snacks",
-    },
-  },
-  {
     "ThePrimeagen/refactoring.nvim",
     dependencies = { "nvim-lua/plenary.nvim", "nvim-treesitter/nvim-treesitter" },
     opts = {},
