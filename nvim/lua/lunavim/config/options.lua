@@ -16,8 +16,8 @@ vim.opt.number = true
 -- Make line relative number default
 vim.opt.relativenumber = true
 
--- Don't wrap line
-vim.opt.wrap = false
+-- Wrap line
+vim.opt.wrap = true
 
 -- Enable mouse mode
 vim.opt.mouse = 'a'
