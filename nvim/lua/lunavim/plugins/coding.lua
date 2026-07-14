@@ -98,18 +98,18 @@ return {
           "path",
           "snippets",
           "lazydev",
+          "buffer",
         },
         per_filetype = {
-          gitcommit = { "git", "lsp", "snippets", "path", "buffer" },
-          NeogitCommitMessage = { "git", "lsp", "snippets", "path", "buffer" },
-          -- markdown = { "git", "lsp", "snippets", "path", "buffer", "dictionary" },
+          gitcommit = { "lsp", "snippets", "path", "buffer" },
+          NeogitCommitMessage = { "lsp", "snippets", "path", "buffer" },
+          markdown = { "lsp", "snippets", "path", "buffer", "dictionary" },
         },
         providers = {
           lsp = {
             name = "LSP",
             module = "blink.cmp.sources.lsp",
             fallbacks = {
-              "buffer",
               "ripgrep",
             },
             score_offset = 100,
@@ -124,7 +124,7 @@ return {
           buffer = {
             name = "Buffer",
             module = "blink.cmp.sources.buffer",
-            min_keyword_length = 2,
+            min_keyword_length = 1,
           },
           ripgrep = {
             name = "Ripgrep",
@@ -138,12 +138,26 @@ return {
               return items
             end,
           },
+
+          snippets = {
+            score_offset = -100,
+            min_keyword_length = 3,
+            opts = {
+              friendly_snippets = true, -- default
+              extended_filetypes = {
+                markdown = { "jekyll" },
+                sh = { "shelldoc" },
+                php = { "phpdoc" },
+                cpp = { "unreal" },
+              },
+            },
+          },
           dictionary = {
             module = "blink-cmp-dictionary",
             name = "Dict",
-            min_keyword_length = 2,
+            min_keyword_length = 1,
             opts = {},
-            score_offset = 0,
+            score_offset = 10,
           },
           git = {
             module = "blink-cmp-git",
@@ -190,13 +204,6 @@ return {
             end,
           },
           ghost_text = { enabled = true },
-          documentation = {
-            auto_show = true,
-            auto_show_delay_ms = 250,
-            window = {
-              border = "rounded",
-            },
-          },
         },
       },
     },
