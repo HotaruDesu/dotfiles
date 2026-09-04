@@ -127,9 +127,9 @@ local plugins = {
     { "<leader><space>", function() Snacks.picker.smart() end, { desc = "Smart Find Files" } },
     { "<leader>fc", function() Snacks.picker.grep_word { words = vim.fn.expand "<cword>" } end, { desc = "Visual selection or word", mode = { "n", "x" } } },
     -- lsp
-    { "gr", function() Snacks.picker.lsp_references({ include_current = true, jump = { reuse_win = false }, }) end, { desc = "LSP References" } },
-    { "gd", function() Snacks.picker.lsp_definitions({ include_current = true, jump = { reuse_win = false }, }) end, { desc = "LSP Definitions" } },
-    { "gD", function() Snacks.picker.lsp_declarations({ include_current = true, jump = { reuse_win = false }, }) end, { desc = "Goto Declaration" } },
+    { "gr", function() Snacks.picker.lsp_references() end, { desc = "LSP References", nowait = true } },
+    { "gd", function() Snacks.picker.lsp_definitions() end, { desc = "LSP Definitions" } },
+    { "gD", function() Snacks.picker.lsp_declarations() end, { desc = "Goto Declaration" } },
     { "gI", function() Snacks.picker.lsp_implementations() end, { desc = "Goto Implementation" } },
     { "gy", function() Snacks.picker.lsp_type_definitions() end, { desc = "Goto T[y]pe Definition" } },
     { "gic", function() Snacks.picker.lsp_incoming_calls() end, { desc = "C[a]lls Incoming" } },
@@ -143,7 +143,7 @@ local plugins = {
     { "<leader>gL", function() Snacks.picker.git_log_line() end, { desc = "Git Log Line" } },
     { "<leader>gs", function() Snacks.picker.git_status() end, { desc = "Git Status" } },
     { "<leader>gS", function() Snacks.picker.git_stash() end, { desc = "Git Stash" } },
-    { "<leader>gd", function() Snacks.picker.git_diff() end, { desc = "Git Diff (Hunks)" } },
+    { "<leader>gD", function() Snacks.picker.git_diff() end, { desc = "Git Diff (Hunks)" } },
     { "<leader>gf", function() Snacks.picker.git_log_file() end, { desc = "Git Log File" } },
     -- gh
     { "<leader>gi", function() Snacks.picker.gh_issue() end, { desc = "GitHub Issues (open)" } },
@@ -154,7 +154,7 @@ local plugins = {
     { "<leader>hs", function() Snacks.notifier.show_history() end, { desc = "Notification History" } },
     { "<leader>nd", function() Snacks.notifier.hide() end, { desc = "Dismiss All Notifications" } },
     { "<leader>lg", function() Snacks.lazygit() end, { desc = "Lazygit" } },
-    { "<leader>tt", function() Snacks.terminal(nil, { win = { position = "float" } }) end, { desc = "Toggle Terminal (Float)" } },
+    { "<leader>tt", function() Snacks.terminal(nil, { win = { position = "float", border = "rounded" } }) end, { desc = "Toggle Terminal (Float)" } },
     { "<leader>th", function() Snacks.terminal(nil, { win = { position = "bottom" } }) end, { desc = "Toggle Terminal (Bottom)" } },
     { "<leader>tv", function() Snacks.terminal(nil, { win = { position = "right" } }) end, { desc = "Toggle Terminal (Right)" } },
     { "<leader>z", function() Snacks.zen() end, { desc = "Toggle Zen Mode" } },
@@ -180,7 +180,7 @@ local plugins = {
   },
   ["flash.nvim"] = {
     { "f", mode = { "n", "x", "o" }, function() require("flash").jump() end, { desc = "Flash Jump" } },
-    { "F", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, { desc = "Flash Treesitter" } },
+    { "t", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, { desc = "Flash Treesitter" } },
     { "r", mode = { "o" }, function() require("flash").remote() end, { desc = "Remote Flash" } },
     { "R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, { desc = "Treesitter Search" } },
     { "<c-x>", mode = { "n" }, function() require("flash").toggle() end, { desc = "Toggle Flash Search" } },
@@ -291,13 +291,11 @@ function M.nvim_normized(keymaps)
 end
 
 function M.lazy_normized(keymaps)
-  local opts = keymaps[3]
-  local mode = keymaps.mode and keymaps.mode or { "n" }
-  if opts then
-    return { keymaps[1], keymaps[2], mode = mode, unpack(opts) }
-  else
-    return { keymaps[1], keymaps[2], mode = mode }
-  end
+  local opts = vim.fn.deepcopy(keymaps[3] or {})
+  opts.mode = keymaps.mode or opts.mode or { "n" }
+  opts[1] = keymaps[1]
+  opts[2] = keymaps[2]
+  return opts
 end
 
 function M.plugin_normized(keymaps, opts)

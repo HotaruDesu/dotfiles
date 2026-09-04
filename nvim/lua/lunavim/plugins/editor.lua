@@ -137,6 +137,15 @@ return {
     opts = {
       preset = "modern",
       win = { border = "rounded" },
+      spec = {
+        { "<leader>c", group = "Code" },
+        { "<leader>f", group = "Find" },
+        { "<leader>g", group = "Git" },
+        { "<leader>m", group = "CMake" },
+        { "<leader>s", group = "Search" },
+        { "<leader>w", group = "Workspace" },
+        { "<leader>x", group = "Diagnostics" },
+      },
     },
   },
   -- Persist session

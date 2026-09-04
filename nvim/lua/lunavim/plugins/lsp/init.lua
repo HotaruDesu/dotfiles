@@ -18,14 +18,13 @@ return {
       "saghen/blink.cmp",
     },
     config = function()
+      local lsp_keymaps = require "lunavim.plugins.lsp.keymaps"
+
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(args)
-          local bufnr = args.buf
-          local map_keys = LunaVim.plugin_nvim "lsp" or {}
-          for _, k in ipairs(map_keys) do
-            local mode, lhs, rhs, opts = unpack(k)
-            opts = vim.tbl_deep_extend("force", opts or {}, { buffer = bufnr })
-            vim.keymap.set(mode, lhs, rhs, opts)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client then
+            lsp_keymaps.on_attach(client, args.buf)
           end
         end,
       })

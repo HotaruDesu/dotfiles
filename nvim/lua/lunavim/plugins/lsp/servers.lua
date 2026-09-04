@@ -13,6 +13,7 @@ M.clangd = {
   },
   cmd = {
     get_clangd_path(),
+    "--log=error", -- keep routine protocol traffic out of Neovim's LSP log
     "--background-index", -- create index in background
     "--clang-tidy", -- activate clang-tidy
     "--header-insertion=iwyu", -- include header automatically
@@ -20,9 +21,20 @@ M.clangd = {
     "--function-arg-placeholders=1", -- function placeholders for <Tab>
     "--fallback-style=llvm",
   },
-  init_options = {
-    clangdFileStatus = true,
-  },
+  on_new_config = function(new_config, new_root_dir)
+    local cmake_project = vim.fs.find("CMakeLists.txt", {
+      path = new_root_dir,
+      upward = true,
+    })[1]
+    if not cmake_project then
+      return
+    end
+
+    local ok, cmake = pcall(require, "cmake-tools")
+    if ok then
+      cmake.clangd_on_new_config(new_config)
+    end
+  end,
 }
 
 M.gopls = {

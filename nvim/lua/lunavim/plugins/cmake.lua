@@ -1,0 +1,85 @@
+return {
+  {
+    "Civitasv/cmake-tools.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    cmd = {
+      "CMakeGenerate",
+      "CMakeBuild",
+      "CMakeRun",
+      "CMakeRunTest",
+      "CMakeSelectBuildTarget",
+      "CMakeSelectLaunchTarget",
+      "CMakeSelectConfigurePreset",
+      "CMakeSelectTestPreset",
+      "CMakeSelectCwd",
+      "CMakeLaunchArgs",
+      "CMakeStopExecutor",
+      "CMakeStopRunner",
+    },
+    keys = {
+      { "<leader>mc", "<cmd>CMakeGenerate<cr>", desc = "CMake Configure" },
+      { "<leader>mb", "<cmd>CMakeBuild<cr>", desc = "CMake Build" },
+      { "<leader>mr", "<cmd>CMakeRun<cr>", desc = "CMake Run" },
+      { "<leader>mt", "<cmd>CMakeRunTest<cr>", desc = "CMake Test" },
+      { "<leader>mB", "<cmd>CMakeSelectBuildTarget<cr>", desc = "Select Build Target" },
+      { "<leader>mR", "<cmd>CMakeSelectLaunchTarget<cr>", desc = "Select Launch Target" },
+      { "<leader>mp", "<cmd>CMakeSelectConfigurePreset<cr>", desc = "Select Configure Preset" },
+      { "<leader>mP", "<cmd>CMakeSelectTestPreset<cr>", desc = "Select Test Preset" },
+      { "<leader>mC", "<cmd>CMakeSelectCwd<cr>", desc = "Select CMake Project Root" },
+      { "<leader>ma", "<cmd>CMakeLaunchArgs<cr>", desc = "Set Launch Arguments" },
+      {
+        "<leader>mx",
+        function()
+          pcall(vim.cmd.CMakeStopExecutor)
+          pcall(vim.cmd.CMakeStopRunner)
+        end,
+        desc = "Stop CMake Task",
+      },
+    },
+    opts = {
+      cmake_command = "cmake",
+      ctest_command = "ctest",
+      ctest_show_labels = true,
+      cmake_use_preset = true,
+      cmake_regenerate_on_save = false,
+      cmake_generate_options = { "-DCMAKE_EXPORT_COMPILE_COMMANDS=1" },
+      cmake_build_directory = "build",
+      cmake_compile_commands_options = {
+        action = "lsp",
+      },
+      cmake_executor = {
+        name = "quickfix",
+        opts = {
+          show = "only_on_error",
+          position = "belowright",
+          size = 12,
+          encoding = "utf-8",
+          auto_close_when_success = true,
+        },
+      },
+      cmake_runner = {
+        name = "terminal",
+        opts = {
+          name = "CMake Runner",
+          prefix_name = "[CMakeTools]: ",
+          split_direction = "horizontal",
+          split_size = 12,
+          single_terminal_per_instance = true,
+          single_terminal_per_tab = true,
+          keep_terminal_static_location = true,
+          auto_resize = true,
+          start_insert = false,
+          focus = false,
+          do_not_add_newline = false,
+          use_shell_alias = false,
+        },
+      },
+      cmake_notifications = {
+        runner = { enabled = true },
+        executor = { enabled = true },
+      },
+      cmake_virtual_text_support = true,
+      cmake_use_scratch_buffer = false,
+    },
+  },
+}

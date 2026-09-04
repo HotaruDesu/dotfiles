@@ -1,3 +1,5 @@
+local theme_style = "night"
+
 return {
   -- color scheme
   {
@@ -5,30 +7,146 @@ return {
     lazy = false,
     priority = 1000,
     opts = {
-      style = "night",
-      transparent = true,
+      style = theme_style,
+      -- Terminal Neovim can inherit the terminal emulator background. Neovide
+      -- needs an opaque Normal grid so its multigrid surfaces keep exact colors.
+      transparent = not vim.g.neovide,
       styles = {
-        sidebars = "transparent",
-        floats = "transparent",
+        sidebars = vim.g.neovide and "normal" or "transparent",
+        floats = "normal",
       },
+      on_colors = function(c)
+        local util = require "tokyonight.util"
+        local surface = util.blend(c.bg, 0.50, "#000000")
+
+        -- Keep every UI surface on the same, slightly deeper shade. Since the
+        -- shade is derived from c.bg, changing theme_style needs no color edits.
+        util.bg = surface
+        c.bg = surface
+        c.bg_dark = surface
+        c.bg_dark1 = surface
+        c.bg_popup = surface
+        c.bg_statusline = surface
+        c.bg_float = surface
+        c.bg_sidebar = vim.g.neovide and surface or c.none
+        c.black = util.blend(surface, 0.8, "#000000")
+        c.border = c.black
+        c.border_highlight = util.blend(c.blue1, 0.8, surface)
+        c.bg_visual = util.blend(c.blue0, 0.4, surface)
+        c.terminal.black = surface
+      end,
       on_highlights = function(hl, c)
         -- Basic UI
         hl.FloatBorder = { fg = c.blue, bg = "NONE" }
-        hl.NormalFloat = { bg = "NONE" }
+        hl.FloatTitle = { fg = c.blue, bg = c.bg, bold = true }
+        hl.NormalFloat = { fg = c.fg, bg = c.bg }
         hl.CursorLine = { bg = c.bg_highlight }
+        hl.Pmenu = { fg = c.fg, bg = c.bg }
+        hl.PmenuSel = { fg = c.fg, bg = c.bg_highlight, bold = true }
+
+        -- Snacks window chrome: one surface, one accent, semantic colors stay intact.
+        local snacks_surfaces = {
+          "SnacksNormal",
+          "SnacksTerminal",
+          "SnacksInputNormal",
+          "SnacksPicker",
+          "SnacksPickerBox",
+          "SnacksPickerInput",
+          "SnacksPickerList",
+          "SnacksPickerPreview",
+          "SnacksNotifierHistory",
+          "SnacksNotifierMinimal",
+        }
+        for _, group in ipairs(snacks_surfaces) do
+          hl[group] = { fg = c.fg, bg = c.bg }
+        end
+        hl.SnacksNormalNC = { fg = c.fg_dark, bg = c.bg }
+
+        local snacks_borders = {
+          "SnacksInputBorder",
+          "SnacksPickerBorder",
+          "SnacksPickerBoxBorder",
+          "SnacksPickerInputBorder",
+          "SnacksPickerListBorder",
+          "SnacksPickerPreviewBorder",
+        }
+        for _, group in ipairs(snacks_borders) do
+          hl[group] = { fg = c.blue, bg = "NONE" }
+        end
+
+        local snacks_titles = {
+          "SnacksInputTitle",
+          "SnacksPickerTitle",
+          "SnacksPickerBoxTitle",
+          "SnacksPickerInputTitle",
+          "SnacksPickerListTitle",
+          "SnacksPickerPreviewTitle",
+        }
+        for _, group in ipairs(snacks_titles) do
+          hl[group] = { fg = c.blue, bg = c.bg, bold = true }
+        end
+
+        local snacks_cursorlines = {
+          "SnacksPickerCursorLine",
+          "SnacksPickerInputCursorLine",
+          "SnacksPickerListCursorLine",
+          "SnacksPickerPreviewCursorLine",
+        }
+        for _, group in ipairs(snacks_cursorlines) do
+          hl[group] = { fg = c.fg, bg = c.bg_highlight }
+        end
+
+        hl.SnacksInputIcon = { fg = c.blue }
+        hl.SnacksPickerFooter = { fg = c.comment, bg = c.bg }
+        hl.SnacksPickerPrompt = { fg = c.blue }
+        hl.SnacksPickerInputSearch = { fg = c.blue, bold = true }
+        hl.SnacksPickerMatch = { fg = c.blue, bold = true }
+        hl.SnacksPickerSelected = { fg = c.blue, bold = true }
+        hl.SnacksPickerSearch = { fg = c.fg, bg = c.blue0 }
+        hl.SnacksPickerSpinner = { fg = c.blue }
+        hl.SnacksPickerTotals = { fg = c.comment }
+        hl.SnacksPickerToggle = { fg = c.blue, bg = c.bg_highlight, bold = true }
+
+        -- Dashboard uses the same accent family without flattening semantic colors.
+        hl.SnacksDashboardDesc = { fg = c.fg_dark }
+        hl.SnacksDashboardFooter = { fg = c.comment }
+        hl.SnacksDashboardHeader = { fg = c.blue }
+        hl.SnacksDashboardIcon = { fg = c.blue1 }
+        hl.SnacksDashboardKey = { fg = c.blue }
+        hl.SnacksDashboardSpecial = { fg = c.purple }
+        hl.SnacksDashboardDir = { fg = c.comment }
+        hl.SnacksIndentScope = { fg = c.blue, nocombine = true }
+        hl.SnacksZenIcon = { fg = c.blue }
+
+        -- Theme-aware colors consumed by plugins configured outside this hook.
+        hl.LunaVimBufferSelected = { fg = c.blue }
+        hl.LunaVimBufferVisible = { fg = c.fg_dark }
+        hl.LunaVimInclineFile = { fg = c.blue, bold = true }
+        hl.LunaVimInclineFileModified = { fg = c.blue, bold = true, italic = true }
+
+        local notifier_accents = {
+          Debug = c.comment,
+          Error = c.error,
+          Info = c.info,
+          Trace = c.purple,
+          Warn = c.warning,
+        }
+        for level, accent in pairs(notifier_accents) do
+          hl["SnacksNotifier" .. level] = { fg = c.fg, bg = c.bg }
+          hl["SnacksNotifierBorder" .. level] = { fg = accent, bg = "NONE" }
+        end
 
         -- Completion menu
-        hl.BlinkCmpMenu = { bg = c.bg_dark }
-        -- hl.BlinkCmpMenu = { bg = "NONE" }
+        hl.BlinkCmpMenu = { fg = c.fg, bg = c.bg }
         hl.BlinkCmpMenuBorder = { fg = c.blue, bg = "NONE" }
         hl.BlinkCmpMenuSelection = { bg = c.bg_highlight, bold = true }
         hl.BlinkCmpSource = { fg = c.comment }
         hl.BlinkCmpLabelDescription = { fg = c.comment }
         hl.BlinkCmpLabelDetail = { fg = c.dark5 }
-        hl.BlinkCmpDoc = { bg = c.bg_dark }
+        hl.BlinkCmpDoc = { fg = c.fg, bg = c.bg }
         hl.BlinkCmpDocBorder = { fg = c.blue, bg = "NONE" }
-        hl.BlinkCmpDocSeparator = { fg = c.dark5, bg = c.bg_dark }
-        hl.BlinkCmpSignatureHelp = { bg = c.bg_dark }
+        hl.BlinkCmpDocSeparator = { fg = c.dark5, bg = c.bg }
+        hl.BlinkCmpSignatureHelp = { fg = c.fg, bg = c.bg }
         hl.BlinkCmpSignatureHelpBorder = { fg = c.blue, bg = "NONE" }
 
         -- Bufferline
@@ -64,11 +182,11 @@ return {
         component_separator = "|",
         section_separators = { left = LunaVim.icons.ui.BoldDividerRight, right = LunaVim.icons.ui.BoldDividerLeft },
         disabled_filetypes = { statusline = { "dashboard", "alpha", "starter" } },
-        sections = {
-          lualine_b = { { "branch", icon = LunaVim.icons.git.Branch }, { "diff", symbols = LunaVim.icons.git } },
-          lualine_c = { { "diagnostics", symbols = LunaVim.icons.diagnostics } },
-          lualine_x = { "encoding", "fileformat", "filetype" },
-        },
+      },
+      sections = {
+        lualine_b = { { "branch", icon = LunaVim.icons.git.Branch }, { "diff", symbols = LunaVim.icons.git } },
+        lualine_c = { { "diagnostics", symbols = LunaVim.icons.diagnostics } },
+        lualine_x = { "encoding", "fileformat", "filetype" },
       },
     },
   },
@@ -79,7 +197,11 @@ return {
     opts = {
       options = {
         mode = "tabs",
-        separator_style = "slant",
+        separator_style = { "", "" },
+        indicator = {
+          icon = "",
+          style = "none",
+        },
         diagnostics = "nvim_lsp",
         show_buffer_close_icon = false,
         show_close_icon = false,
@@ -92,58 +214,57 @@ return {
           local icon = level:match "error" and icons.Error or icons.Warn
           return " " .. icon .. count
         end,
-        highlights = {
-          background = { bg = "none" },
-          fill = { bg = "none" },
-          buffer_selected = { bg = "none", fg = "#fab387" },
-          buffer_visible = { bg = "none", fg = "#a6adc8" },
-          close_button = { bg = "none" },
-          close_button_selected = { bg = "none" },
-          close_button_visible = { bg = "none" },
-          duplicate = { bg = "none" },
-          duplicate_selected = { bg = "none" },
-          duplicate_visible = { bg = "none" },
-          error = { bg = "none" },
-          error_selected = { bg = "none" },
-          error_visible = { bg = "none" },
-          hint = { bg = "none" },
-          hint_selected = { bg = "none" },
-          hint_visible = { bg = "none" },
-          indicator_selected = { bg = "none" },
-          indicator_visible = { bg = "none" },
-          info = { bg = "none" },
-          info_selected = { bg = "none" },
-          info_visible = { bg = "none" },
-          modified = { bg = "none" },
-          modified_selected = { bg = "none" },
-          modified_visible = { bg = "none" },
-          numbers = { bg = "none" },
-          numbers_selected = { bg = "none" },
-          numbers_visible = { bg = "none" },
-          offset_separator = { bg = "none" },
-          pick = { bg = "none" },
-          pick_selected = { bg = "none" },
-          pick_visible = { bg = "none" },
-          separator = { bg = "none" },
-          separator_selected = { bg = "none" },
-          separator_visible = { bg = "none" },
-          tab = { bg = "none" },
-          tab_close = { bg = "none" },
-          tab_selected = { bg = "none" },
-          tab_separator = { bg = "none" },
-          tab_separator_selected = { bg = "none" },
-          trunc_marker = { bg = "none" },
-          warning = { bg = "none" },
-          warning_selected = { bg = "none" },
-          warning_visible = { bg = "none" },
+      },
+      highlights = {
+        background = { bg = "none" },
+        fill = { bg = "none" },
+        buffer_selected = {
+          bg = "none",
+          fg = { highlight = "LunaVimBufferSelected", attribute = "fg" },
         },
-        options = {
-          indicator = {
-            icon = "",
-            style = "none",
-          },
-          separator_style = { "", "" },
+        buffer_visible = {
+          bg = "none",
+          fg = { highlight = "LunaVimBufferVisible", attribute = "fg" },
         },
+        close_button = { bg = "none" },
+        close_button_selected = { bg = "none" },
+        close_button_visible = { bg = "none" },
+        duplicate = { bg = "none" },
+        duplicate_selected = { bg = "none" },
+        duplicate_visible = { bg = "none" },
+        error = { bg = "none" },
+        error_selected = { bg = "none" },
+        error_visible = { bg = "none" },
+        hint = { bg = "none" },
+        hint_selected = { bg = "none" },
+        hint_visible = { bg = "none" },
+        indicator_selected = { bg = "none" },
+        indicator_visible = { bg = "none" },
+        info = { bg = "none" },
+        info_selected = { bg = "none" },
+        info_visible = { bg = "none" },
+        modified = { bg = "none" },
+        modified_selected = { bg = "none" },
+        modified_visible = { bg = "none" },
+        numbers = { bg = "none" },
+        numbers_selected = { bg = "none" },
+        numbers_visible = { bg = "none" },
+        offset_separator = { bg = "none" },
+        pick = { bg = "none" },
+        pick_selected = { bg = "none" },
+        pick_visible = { bg = "none" },
+        separator = { bg = "none" },
+        separator_selected = { bg = "none" },
+        separator_visible = { bg = "none" },
+        tab = { bg = "none" },
+        tab_close = { bg = "none" },
+        tab_selected = { bg = "none" },
+        tab_separator = { bg = "none" },
+        tab_separator_selected = { bg = "none" },
+        trunc_marker = { bg = "none" },
+        warning = { bg = "none" },
+        warning_selected = { bg = "none" },
+        warning_visible = { bg = "none" },
       },
     },
   },
@@ -185,7 +306,7 @@ return {
             { " ", guibg = "NONE" },
             {
               { ft_icon and (" " .. ft_icon .. " ") or "", guifg = ft_color, guibg = "NONE" },
-              { filename .. " ", gui = modified and "bold,italic" or "bold", guifg = "#7aa2f7", guibg = "NONE" },
+              { filename .. " ", group = modified and "LunaVimInclineFileModified" or "LunaVimInclineFile" },
             },
             { " ", guibg = "NONE" },
           }
@@ -249,7 +370,7 @@ return {
         layouts = {
           luna_vertical = {
             layout = {
-              backdrop = { transparent = true, blend = 40 },
+              backdrop = false,
               width = 0.95,
               height = 0.95,
               box = "vertical",
@@ -263,7 +384,7 @@ return {
           },
           luna_horizontal = {
             layout = {
-              backdrop = { transparent = true, blend = 40 },
+              backdrop = false,
               width = 0.95,
               height = 0.95,
               box = "horizontal",
@@ -296,39 +417,51 @@ return {
       -- explorer = { enabled = true },
       terminal = {
         enabled = true,
-        bo = {
-          filetype = "snacks_terminal",
-        },
-        wo = {},
-        stack = true, -- when enabled, multiple split windows with the same position will be stacked together (useful for terminals)
-        keys = {
-          q = "hide",
-          gf = function(self)
-            local f = vim.fn.findfile(vim.fn.expand "<cfile>", "**")
-            if f == "" then
-              Snacks.notify.warn "No file under cursor"
-            else
-              self:hide()
-              vim.schedule(function()
-                vim.cmd("e " .. f)
-              end)
-            end
-          end,
-          term_normal = {
-            "<esc>",
-            function(self)
-              self.esc_timer = self.esc_timer or (vim.uv or vim.loop).new_timer()
-              if self.esc_timer:is_active() then
-                self.esc_timer:stop()
-                vim.cmd "stopinsert"
+        win = {
+          bo = {
+            filetype = "snacks_terminal",
+          },
+          wo = {
+            winhighlight = table.concat({
+              "Normal:SnacksTerminal",
+              "NormalNC:SnacksTerminal",
+              "WinBar:SnacksWinBar",
+              "WinBarNC:SnacksWinBarNC",
+              "FloatTitle:SnacksTitle",
+              "FloatFooter:SnacksFooter",
+              "WinSeparator:SnacksWinSeparator",
+            }, ","),
+          },
+          stack = true,
+          keys = {
+            q = "hide",
+            gf = function(self)
+              local f = vim.fn.findfile(vim.fn.expand "<cfile>", "**")
+              if f == "" then
+                Snacks.notify.warn "No file under cursor"
               else
-                self.esc_timer:start(200, 0, function() end)
-                return "<esc>"
+                self:hide()
+                vim.schedule(function()
+                  vim.cmd("e " .. f)
+                end)
               end
             end,
-            mode = "t",
-            expr = true,
-            desc = "Double escape to normal mode",
+            term_normal = {
+              "<esc>",
+              function(self)
+                self.esc_timer = self.esc_timer or vim.uv.new_timer()
+                if self.esc_timer:is_active() then
+                  self.esc_timer:stop()
+                  vim.cmd "stopinsert"
+                else
+                  self.esc_timer:start(200, 0, function() end)
+                  return "<esc>"
+                end
+              end,
+              mode = "t",
+              expr = true,
+              desc = "Double escape to normal mode",
+            },
           },
         },
       },
@@ -337,7 +470,7 @@ return {
       scroll = { enabled = false },
       scope = { enabled = true },
       styles = {
-        notification = { bg = "NONE", wo = { wrap = true } },
+        notification = { border = "rounded", wo = { winblend = 0, wrap = true } },
         picker = { border = "rounded" },
       },
     },

@@ -75,6 +75,8 @@ vim.opt.confirm = true
 
 -- Turm on termguicolors for tokyonight colorscheme to work. must have to use true color terminal
 vim.opt.termguicolors = true
+vim.opt.winblend = 0
+vim.opt.pumblend = 0
 -- Background can be "light" or "dark"
 vim.opt.background = "dark"
 -- Show sign column so that text doesn't shift
@@ -82,6 +84,15 @@ vim.opt.signcolumn = "yes"
 
 -- neovide
 if vim.g.neovide then
+  -- Keep TokyoNight colors exact instead of compositing transparent multigrids
+  -- with the native window background.
+  vim.g.neovide_theme = "dark"
+  vim.g.neovide_opacity = 1.0
+  vim.g.neovide_normal_opacity = 1.0
+  vim.g.neovide_floating_blur_amount_x = 0.0
+  vim.g.neovide_floating_blur_amount_y = 0.0
+  vim.g.neovide_floating_shadow = false
+
   vim.g.neovide_input_macos_option_is_meta = true
   vim.g.neovide_input_macos_option_key_is_meta = "both"
   vim.o.guifont = "Maple Mono NF CN:12"
