@@ -17,6 +17,20 @@ return {
         hl.NormalFloat = { bg = "NONE" }
         hl.CursorLine = { bg = c.bg_highlight }
 
+        -- Completion menu
+        hl.BlinkCmpMenu = { bg = c.bg_dark }
+        -- hl.BlinkCmpMenu = { bg = "NONE" }
+        hl.BlinkCmpMenuBorder = { fg = c.blue, bg = "NONE" }
+        hl.BlinkCmpMenuSelection = { bg = c.bg_highlight, bold = true }
+        hl.BlinkCmpSource = { fg = c.comment }
+        hl.BlinkCmpLabelDescription = { fg = c.comment }
+        hl.BlinkCmpLabelDetail = { fg = c.dark5 }
+        hl.BlinkCmpDoc = { bg = c.bg_dark }
+        hl.BlinkCmpDocBorder = { fg = c.blue, bg = "NONE" }
+        hl.BlinkCmpDocSeparator = { fg = c.dark5, bg = c.bg_dark }
+        hl.BlinkCmpSignatureHelp = { bg = c.bg_dark }
+        hl.BlinkCmpSignatureHelpBorder = { fg = c.blue, bg = "NONE" }
+
         -- Bufferline
         -- hl.BufferLineFill = { bg = "NONE" }
         -- hl.BufferLineBackground = { bg = "NONE" }

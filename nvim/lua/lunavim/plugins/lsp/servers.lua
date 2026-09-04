@@ -1,50 +1,26 @@
 local M = {}
 
 local function get_clangd_path()
-  local cmd = "which clangd"
-  local handle = io.popen(cmd)
-  if handle then
-    local result = handle:read "*a"
-    handle:close()
-    if result and result ~= "" then
-      local path = result:gsub("%s+", "")
-      if vim.fn.executable(path) == 1 then
-        return path
-      end
-    end
-  end
-  return "clangd"
+  local path = vim.fn.exepath "clangd"
+  return path ~= "" and path or "clangd"
 end
 
 M.clangd = {
-  root_dir = function(bufnr, on_dir)
-    local root = vim.fs.root(bufnr, {
-      "Makefile",
-      "configure.ac",
-      "configure.in",
-      "config.h.in",
-      "meson.build",
-      "opt/build/compile_commands.json",
-      "compile_flags.txt",
-      ".git",
-    })
-    on_dir(root)
-  end,
-  capabilities = require('blink.cmp').get_lsp_capabilities(),
+  root_markers = {
+    { ".clangd", "compile_commands.json", "compile_flags.txt" },
+    { "CMakeLists.txt", "Makefile", "meson.build", "configure.ac", "configure.in" },
+    ".git",
+  },
   cmd = {
     get_clangd_path(),
     "--background-index", -- create index in background
     "--clang-tidy", -- activate clang-tidy
     "--header-insertion=iwyu", -- include header automatically
     "--completion-style=detailed", -- completion style when you typing
-    "--function-arg-placeholders", -- function placeholders for <Tab>
+    "--function-arg-placeholders=1", -- function placeholders for <Tab>
     "--fallback-style=llvm",
-    "--experimental-modules-support",
-    "--pch-storage=disk",
   },
   init_options = {
-    usePlaceholders = true,
-    completeUnimported = true,
     clangdFileStatus = true,
   },
 }

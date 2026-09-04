@@ -26,42 +26,50 @@ return {
         ["<C-f>"] = { "scroll_documentation_down", "fallback" },
         ["<C-u>"] = { "scroll_signature_up", "fallback" },
         ["<C-d>"] = { "scroll_signature_down", "fallback" },
-        ["<C-e>"] = { "hide" },
+        ["<C-e>"] = { "cancel", "fallback" },
         ["<CR>"] = { "accept", "fallback" },
         ["<Tab>"] = { "snippet_forward", "fallback" },
         ["<S-Tab>"] = { "snippet_backward", "fallback" },
       },
       appearance = {
         nerd_font_variant = "mono",
+        kind_icons = LunaVim.icons.kinds,
       },
       completion = {
         menu = {
           auto_show = true,
+          auto_show_delay_ms = 0,
+          min_width = 30,
+          max_height = 10,
           border = "rounded",
+          winblend = 0,
           draw = {
             padding = 1,
             treesitter = { "lsp" },
             columns = {
-              { "item_idx" },
               { "kind_icon" },
               { "label", "label_description", gap = 1 },
               { "source_name" },
             },
             components = {
-              item_idx = {
-                text = function(ctx)
-                  return tostring(ctx.idx)
-                end,
-                highlight = "BlinkCmpItemIdx", -- optional, only if you want to change its color
+              label = {
+                width = { fill = true, max = 45 },
+              },
+              label_description = {
+                width = { max = 25 },
               },
               source_name = {
-                width = { max = 15 },
+                width = { max = 8 },
                 text = function(ctx)
-                  return "[" .. ctx.source_name .. "]"
+                  local names = {
+                    Buffer = "BUF",
+                    LSP = "LSP",
+                    Path = "PATH",
+                    Snippets = "SNIP",
+                  }
+                  return "[" .. (names[ctx.source_name] or ctx.source_name) .. "]"
                 end,
-                highlight = function(ctx)
-                  return ctx.kind_hl
-                end,
+                highlight = "BlinkCmpSource",
               },
             },
           },
@@ -70,19 +78,26 @@ return {
           auto_brackets = { enabled = true },
         },
         documentation = {
-          window = { border = "rounded" },
+          auto_show = true,
+          auto_show_delay_ms = 300,
+          update_delay_ms = 50,
+          window = {
+            border = "rounded",
+            winblend = 0,
+            max_width = 72,
+            max_height = 18,
+          },
         },
         list = {
           selection = { preselect = false, auto_insert = true },
         },
-        ghost_text = { enabled = true },
+        ghost_text = { enabled = false },
       },
       fuzzy = {
         sorts = {
           "exact",
           "score",
           "sort_text",
-          "label",
         },
       },
       signature = {
@@ -93,6 +108,7 @@ return {
         window = { border = "rounded" },
       },
       sources = {
+        min_keyword_length = 2,
         default = {
           "lsp",
           "path",
@@ -101,6 +117,7 @@ return {
           "buffer",
         },
         per_filetype = {
+          cpp = { "lsp", "path", "snippets", "buffer" },
           gitcommit = { "lsp", "snippets", "path", "buffer" },
           NeogitCommitMessage = { "lsp", "snippets", "path", "buffer" },
           markdown = { "lsp", "snippets", "path", "buffer", "dictionary" },
@@ -110,21 +127,15 @@ return {
             name = "LSP",
             module = "blink.cmp.sources.lsp",
             fallbacks = {
-              "ripgrep",
+              "buffer",
             },
-            score_offset = 100,
-            transform_items = function(_, items)
-              return vim.tbl_filter(function(item)
-                local kind = require("blink.cmp.types").CompletionItemKind
-                -- return item.kind ~= kind.Keyword
-                return item.kind ~= kind.Text
-              end, items)
-            end,
+            score_offset = 5,
           },
           buffer = {
             name = "Buffer",
             module = "blink.cmp.sources.buffer",
-            min_keyword_length = 1,
+            min_keyword_length = 2,
+            score_offset = -5,
           },
           ripgrep = {
             name = "Ripgrep",
@@ -140,15 +151,14 @@ return {
           },
 
           snippets = {
-            score_offset = -100,
-            min_keyword_length = 3,
+            score_offset = -5,
+            min_keyword_length = 2,
             opts = {
               friendly_snippets = true, -- default
               extended_filetypes = {
                 markdown = { "jekyll" },
                 sh = { "shelldoc" },
                 php = { "phpdoc" },
-                cpp = { "unreal" },
               },
             },
           },
@@ -256,12 +266,6 @@ return {
       check_syntax = true,
       cursor_behavior = "hold",
     },
-  },
-  {
-    "nvim-mini/mini.pairs",
-    event = "InsertEnter",
-    lazy = true,
-    opts = {},
   },
   {
     "windwp/nvim-autopairs",

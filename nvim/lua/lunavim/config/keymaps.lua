@@ -56,7 +56,7 @@ local defaults = {
     -- Tab create
     ["<leader>to"] = {
       function()
-        vim.cmd("tabnew")
+        vim.cmd "tabnew"
         vim.cmd("tcd " .. vim.fn.getcwd())
       end,
       { desc = "Open a new tab in cwd" },
@@ -87,7 +87,12 @@ local defaults = {
 
     ["<leader>nh"] = { ":nohl<Return>", { desc = "No highlight" } },
 
-    ["<leader>rn"] = { ":IncRename ", { desc = "Rename" } },
+    ["<leader>rn"] = {
+      function()
+        vim.lsp.buf.rename()
+      end,
+      { desc = "Rename" },
+    },
     ["<leader>,,"] = {
       function()
         require("conform").format { async = true, lsp_format = "fallback" }
