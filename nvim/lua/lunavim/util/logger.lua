@@ -10,7 +10,7 @@ local levels = {
 }
 
 function M.log_debug(msg)
-  vim.notify(msg, levels.DEBUG)
+  vim.notify(msg, levels.debug)
 end
 
 function M.log_error(msg)

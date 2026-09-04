@@ -5,12 +5,8 @@ return {
     dependencies = {
       -- snippets
       "rafamadriz/friendly-snippets",
-      -- ripgrep
-      "mikavilpas/blink-ripgrep.nvim",
       -- dictionary
       "Kaiser-Yang/blink-cmp-dictionary",
-      -- git
-      "Kaiser-Yang/blink-cmp-git",
     },
     version = "1.*",
     opts = {
@@ -137,19 +133,6 @@ return {
             min_keyword_length = 2,
             score_offset = -5,
           },
-          ripgrep = {
-            name = "Ripgrep",
-            module = "blink-ripgrep",
-            min_keyword_length = 2,
-            score_offset = -1,
-            transform_items = function(_, items)
-              for _, item in ipairs(items) do
-                item.labelDetails = { description = "(rg)" }
-              end
-              return items
-            end,
-          },
-
           snippets = {
             score_offset = -5,
             min_keyword_length = 2,
@@ -168,12 +151,6 @@ return {
             min_keyword_length = 1,
             opts = {},
             score_offset = 10,
-          },
-          git = {
-            module = "blink-cmp-git",
-            name = "Git",
-            opts = {},
-            score_offset = 0,
           },
           lazydev = {
             name = "LazyDev",

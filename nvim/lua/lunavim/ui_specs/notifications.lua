@@ -1,0 +1,34 @@
+return {
+  -- Notice and notify
+  {
+    "folke/noice.nvim",
+    event = "VeryLazy",
+    dependencies = {
+      "MunifTanjim/nui.nvim",
+    },
+    opts = {
+      lsp = {
+        override = {
+          ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+          ["vim.lsp.util.set_formatting_pair"] = true,
+          ["vim.lsp.util.stylize_markdown"] = true,
+        },
+      },
+      cmdline = {
+        format = {
+          inc_rename = { icon = "", opts = { skip = true }, pattern = "^:%s*IncRename%s+" },
+        },
+      },
+      presets = {
+        bottom_search = true, -- use a classic bottom cmdline for search
+        command_palette = true, -- position the cmdline and popupmenu together
+        long_message_to_split = true, -- long messages will be sent to a split
+        lsp_doc_border = true, -- add a border to hover docs and signature help
+      },
+      redirect = {
+        view = "notify",
+        filter = { event = "msg_show" },
+      },
+    },
+  },
+}

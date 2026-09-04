@@ -14,12 +14,23 @@ return {
         "cmake",
         "markdown",
         "markdown_inline",
+        "regex",
         "javascript",
         "typescript",
       }
-      require("nvim-treesitter").install(install_languages, {
-        summary = true,
-      })
+      local treesitter = require "nvim-treesitter"
+      local installed = {}
+      for _, language in ipairs(treesitter.get_installed "parsers") do
+        installed[language] = true
+      end
+
+      local missing = vim.tbl_filter(function(language)
+        return not installed[language]
+      end, install_languages)
+      if #missing > 0 then
+        treesitter.install(missing, { summary = true })
+      end
+
       vim.api.nvim_create_autocmd("FileType", {
         pattern = install_languages,
         callback = function()

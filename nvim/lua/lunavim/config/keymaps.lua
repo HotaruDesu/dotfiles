@@ -57,7 +57,7 @@ local defaults = {
     ["<leader>to"] = {
       function()
         vim.cmd "tabnew"
-        vim.cmd("tcd " .. vim.fn.getcwd())
+        vim.cmd("tcd " .. vim.fn.fnameescape(vim.fn.getcwd()))
       end,
       { desc = "Open a new tab in cwd" },
     },

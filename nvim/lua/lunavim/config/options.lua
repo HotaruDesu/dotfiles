@@ -1,6 +1,6 @@
 -- Set <space> as the leader key
-vim.g.mapleader = ' '
-vim.g.maplocalleader = ' '
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
 
 -- Number of spaes that a <Tab> counts
 vim.opt.tabstop = 2
@@ -20,7 +20,7 @@ vim.opt.relativenumber = true
 vim.opt.wrap = true
 
 -- Enable mouse mode
-vim.opt.mouse = 'a'
+vim.opt.mouse = "a"
 -- Enable mouse movement event
 -- vim.opt.mousemoveevent = true
 
@@ -33,7 +33,7 @@ vim.opt.showmode = false
 -- Sync clipboard between OS and Neovim
 -- We need invoke vim.schedule, since we don't hope this behavior breaks something else that Nvim is doing
 vim.schedule(function()
-	vim.opt.clipboard = 'unnamedplus'
+  vim.opt.clipboard = "unnamedplus"
 end)
 
 -- Enable break indent
@@ -47,7 +47,7 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 
 -- Always enable sign column
-vim.opt.signcolumn = 'yes:2'
+vim.opt.signcolumn = "yes:2"
 
 -- Decrease time for swap file saving
 vim.opt.updatetime = 250
@@ -61,7 +61,7 @@ vim.opt.splitright = true
 vim.opt.splitbelow = true
 
 -- show the effects of substitutions
-vim.opt.inccommand = 'split'
+vim.opt.inccommand = "split"
 
 -- Show which line the cursor is on
 vim.opt.cursorline = true
@@ -79,9 +79,6 @@ vim.opt.winblend = 0
 vim.opt.pumblend = 0
 -- Background can be "light" or "dark"
 vim.opt.background = "dark"
--- Show sign column so that text doesn't shift
-vim.opt.signcolumn = "yes"
-
 -- neovide
 if vim.g.neovide then
   -- Keep TokyoNight colors exact instead of compositing transparent multigrids
@@ -99,10 +96,20 @@ if vim.g.neovide then
   vim.g.neovide_line_spacing = 0.1
   vim.g.neovide_scale_factor = 1.0
 
-  local change_scale_factor = function(delta) vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta end
+  local change_scale_factor = function(delta)
+    vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
+  end
 
-  vim.keymap.set("n", "<D-->", function() change_scale_factor(1 / 1.05) end)
-  vim.keymap.set("n", "<D-=>", function() change_scale_factor(1.05) end)
-  vim.keymap.set("n", "<D-+>", function() vim.g.neovide_line_spacing = 1 end)
-  vim.keymap.set("n", "<F11>", function() vim.g.neovide_fullscreen = not vim.g.neovide_fullscreen end)
+  vim.keymap.set("n", "<D-->", function()
+    change_scale_factor(1 / 1.05)
+  end)
+  vim.keymap.set("n", "<D-=>", function()
+    change_scale_factor(1.05)
+  end)
+  vim.keymap.set("n", "<D-+>", function()
+    vim.g.neovide_line_spacing = 1
+  end)
+  vim.keymap.set("n", "<F11>", function()
+    vim.g.neovide_fullscreen = not vim.g.neovide_fullscreen
+  end)
 end

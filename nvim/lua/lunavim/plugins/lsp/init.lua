@@ -18,6 +18,8 @@ return {
       "saghen/blink.cmp",
     },
     config = function()
+      vim.lsp.log.set_level "ERROR"
+
       local lsp_keymaps = require "lunavim.plugins.lsp.keymaps"
 
       vim.api.nvim_create_autocmd("LspAttach", {
@@ -39,10 +41,15 @@ return {
         vim.lsp.enable(lang)
       end
 
+      -- clangd 22 warns about this deprecated extension. Neovim already
+      -- advertises the standard LSP 3.17 general.positionEncodings field.
+      vim.lsp.config.clangd.capabilities.offsetEncoding = nil
+
       require("mason").setup { ui = { border = "rounded" } }
 
       require("mason-lspconfig").setup {
         ensure_installed = vim.tbl_keys(lsp_servers),
+        automatic_enable = false,
       }
 
       local icons = LunaVim.icons.diagnostics
@@ -100,10 +107,5 @@ return {
       padding = false,
       indent_lines = false,
     },
-  },
-  {
-    "ThePrimeagen/refactoring.nvim",
-    dependencies = { "nvim-lua/plenary.nvim", "nvim-treesitter/nvim-treesitter" },
-    opts = {},
   },
 }

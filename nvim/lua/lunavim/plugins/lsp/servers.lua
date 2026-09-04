@@ -91,22 +91,22 @@ M.lua_ls = {
     Lua = {
       workspace = { checkThirdParty = false },
       telemetry = { enable = false },
-    },
-    codeLens = {
-      enable = true,
-    },
-    completion = {
-      callSnippet = "Replace",
-    },
-    doc = {
-      privateName = { "^_" },
-    },
-    hint = {
-      enable = true,
-      setType = true,
-    },
-    diagnostics = {
-      unusedLocalExclude = { "_*" },
+      codeLens = {
+        enable = true,
+      },
+      completion = {
+        callSnippet = "Replace",
+      },
+      doc = {
+        privateName = { "^_" },
+      },
+      hint = {
+        enable = true,
+        setType = true,
+      },
+      diagnostics = {
+        unusedLocalExclude = { "_*" },
+      },
     },
   },
 }
