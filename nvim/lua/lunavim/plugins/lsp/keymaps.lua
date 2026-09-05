@@ -4,6 +4,7 @@ local server_keymaps = {
   clangd = {
     { "n", "gh", "<Cmd>LspClangdSwitchSourceHeader<CR>", { desc = "Switch Source/Header" } },
     { "n", "<leader>ci", "<Cmd>LspClangdShowSymbolInfo<CR>", { desc = "Clangd Symbol Info" } },
+    { "n", "<leader>cr", "<Cmd>CppChangeSignature<CR>", { desc = "Change Function Signature" } },
   },
 }
 

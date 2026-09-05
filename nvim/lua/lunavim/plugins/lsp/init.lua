@@ -20,6 +20,8 @@ return {
     config = function()
       vim.lsp.log.set_level "ERROR"
 
+      require("lunavim.plugins.lsp.signature").setup()
+
       local lsp_keymaps = require "lunavim.plugins.lsp.keymaps"
 
       vim.api.nvim_create_autocmd("LspAttach", {
