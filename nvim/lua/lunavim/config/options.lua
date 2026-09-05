@@ -86,6 +86,46 @@ if vim.g.neovide then
   vim.g.neovide_theme = "dark"
   vim.g.neovide_opacity = 1.0
   vim.g.neovide_normal_opacity = 1.0
+
+  -- Give the editor a little breathing room without wasting screen space.
+  vim.g.neovide_padding_top = 6
+  vim.g.neovide_padding_bottom = 6
+  vim.g.neovide_padding_left = 6
+  vim.g.neovide_padding_right = 6
+
+  -- Keep window and scrolling motion responsive.
+  vim.g.neovide_position_animation_length = 0.1
+  vim.g.neovide_scroll_animation_length = 0.18
+  vim.g.neovide_scroll_animation_far_lines = 1
+
+  -- Preserve Neovide's fluid cursor motion and add a restrained particle trail.
+  vim.g.neovide_cursor_animation_length = 0.18
+  vim.g.neovide_cursor_short_animation_length = 0.05
+  vim.g.neovide_cursor_trail_size = 0.9
+  vim.g.neovide_cursor_animate_in_insert_mode = true
+  vim.g.neovide_cursor_animate_command_line = true
+  vim.g.neovide_cursor_antialiasing = true
+  vim.g.neovide_cursor_smooth_blink = true
+
+  vim.g.neovide_cursor_vfx_mode = "pixiedust"
+  vim.g.neovide_cursor_vfx_particle_lifetime = 0.35
+  vim.g.neovide_cursor_vfx_particle_density = 0.35
+  vim.g.neovide_cursor_vfx_particle_speed = 8.0
+  vim.g.neovide_cursor_vfx_particle_phase = 1.2
+  vim.g.neovide_cursor_vfx_particle_curl = 0.8
+  -- vim.g.neovide_cursor_vfx_mode = { "pixiedust", "railgun" }
+  -- vim.g.neovide_cursor_vfx_particle_lifetime = 0.5
+  -- vim.g.neovide_cursor_vfx_particle_density = 0.6
+  -- vim.g.neovide_cursor_vfx_particle_speed = 10.0
+  -- vim.g.neovide_cursor_vfx_particle_phase = 1.2
+  -- vim.g.neovide_cursor_vfx_particle_curl = 0.8
+
+  vim.g.neovide_progress_bar_enabled = false
+  vim.g.neovide_hide_mouse_when_typing = true
+  vim.g.neovide_remember_window_size = true
+  vim.g.neovide_refresh_rate_idle = 5
+  vim.g.neovide_confirm_quit = true
+
   vim.g.neovide_floating_blur_amount_x = 0.0
   vim.g.neovide_floating_blur_amount_y = 0.0
   vim.g.neovide_floating_shadow = false
@@ -93,23 +133,27 @@ if vim.g.neovide then
   vim.g.neovide_input_macos_option_is_meta = true
   vim.g.neovide_input_macos_option_key_is_meta = "both"
   vim.o.guifont = "Maple Mono NF CN:12"
-  vim.g.neovide_line_spacing = 0.1
+  vim.opt.linespace = 1
   vim.g.neovide_scale_factor = 1.0
 
-  local change_scale_factor = function(delta)
-    vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
+  local default_scale = 1.0
+  local change_scale_factor = function(factor)
+    vim.g.neovide_scale_factor = math.max(0.5, math.min(2.0, vim.g.neovide_scale_factor * factor))
   end
 
-  vim.keymap.set("n", "<D-->", function()
+  vim.keymap.set({ "n", "i", "v" }, "<D-->", function()
     change_scale_factor(1 / 1.05)
-  end)
-  vim.keymap.set("n", "<D-=>", function()
-    change_scale_factor(1.05)
-  end)
-  vim.keymap.set("n", "<D-+>", function()
-    vim.g.neovide_line_spacing = 1
-  end)
+  end, { desc = "Decrease Neovide scale" })
+  for _, lhs in ipairs { "<D-=>", "<D-+>" } do
+    vim.keymap.set({ "n", "i", "v" }, lhs, function()
+      change_scale_factor(1.05)
+    end, { desc = "Increase Neovide scale" })
+  end
+  vim.keymap.set({ "n", "i", "v" }, "<D-0>", function()
+    vim.g.neovide_scale_factor = default_scale
+  end, { desc = "Reset Neovide scale" })
+  vim.keymap.set({ "n", "i", "v" }, "<D-s>", "<Cmd>silent update<CR>", { desc = "Save file" })
   vim.keymap.set("n", "<F11>", function()
     vim.g.neovide_fullscreen = not vim.g.neovide_fullscreen
-  end)
+  end, { desc = "Toggle Neovide fullscreen" })
 end
