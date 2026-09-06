@@ -99,9 +99,9 @@ if vim.g.neovide then
   vim.g.neovide_scroll_animation_far_lines = 1
 
   -- Preserve Neovide's fluid cursor motion and add a restrained particle trail.
-  vim.g.neovide_cursor_animation_length = 0.18
+  vim.g.neovide_cursor_animation_length = 0.15
   vim.g.neovide_cursor_short_animation_length = 0.05
-  vim.g.neovide_cursor_trail_size = 0.9
+  vim.g.neovide_cursor_trail_size = 1.2
   vim.g.neovide_cursor_animate_in_insert_mode = true
   vim.g.neovide_cursor_animate_command_line = true
   vim.g.neovide_cursor_antialiasing = true
@@ -113,6 +113,7 @@ if vim.g.neovide then
   vim.g.neovide_cursor_vfx_particle_speed = 8.0
   vim.g.neovide_cursor_vfx_particle_phase = 1.2
   vim.g.neovide_cursor_vfx_particle_curl = 0.8
+
   -- vim.g.neovide_cursor_vfx_mode = { "pixiedust", "railgun" }
   -- vim.g.neovide_cursor_vfx_particle_lifetime = 0.5
   -- vim.g.neovide_cursor_vfx_particle_density = 0.6
