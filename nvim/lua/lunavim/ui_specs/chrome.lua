@@ -13,7 +13,10 @@ return {
       },
       sections = {
         lualine_b = { { "branch", icon = LunaVim.icons.git.Branch }, { "diff", symbols = LunaVim.icons.git } },
-        lualine_c = { { "diagnostics", symbols = LunaVim.icons.diagnostics } },
+        lualine_c = {
+          { "filename", path = 1, shorting_target = 60 },
+          { "diagnostics", symbols = LunaVim.icons.diagnostics }
+        },
         lualine_x = { "encoding", "fileformat", "filetype" },
       },
     },
