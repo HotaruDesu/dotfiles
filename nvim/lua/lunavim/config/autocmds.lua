@@ -65,3 +65,18 @@ vim.api.nvim_create_user_command("BufPrune", function()
     cleanup_buffer(buf)
   end
 end, {})
+
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
+  pattern = "*",
+  callback = function()
+    if vim.fn.mode() ~= 'c' then
+      vim.cmd("checktime")
+    end
+  end
+})
+
+vim.api.nvim_create_autocmd("FileChangedShellPost", {
+  callback = function(arg)
+    vim.notify("auto reload file: " .. arg.file, vim.log.levels.INFO)
+  end
+})
