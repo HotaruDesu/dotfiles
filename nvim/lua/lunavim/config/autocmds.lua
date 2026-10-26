@@ -76,7 +76,7 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHo
 })
 
 vim.api.nvim_create_autocmd("FileChangedShellPost", {
-  callback = function(arg)
-    vim.notify("auto reload file: " .. arg.file, vim.log.levels.INFO)
+  callback = function(args)
+    vim.notify("auto reload file: " .. args.file, vim.log.levels.INFO)
   end
 })
