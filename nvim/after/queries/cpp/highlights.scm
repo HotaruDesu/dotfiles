@@ -1,15 +1,16 @@
 ;; extends
 
-(import_declaration
-  "import" @keyword.import.cpp)
-(import_declaration
-  name: (module_name) @string)
+"import" @keyword.import
 
+"module" @keyword.type
 
-(module_declaration
-  "export" @keyword
-  "module" @keyword
-  name: (module_name) @namespace)
+"export" @keyword
 
-(export_declaration
-  "export" @keyword)
+; Named modules and partitions are not strings. Header imports inherit the
+; string_literal / system_lib_string captures from C.
+(module_name
+  (identifier) @module
+  (#set! priority 105))
+
+(module_name
+  "." @punctuation.delimiter)
