@@ -1,5 +1,63 @@
+local function tab_highlights()
+  local highlights = {}
+  for _, group in ipairs {
+    "background",
+    "fill",
+    "close_button",
+    "close_button_selected",
+    "close_button_visible",
+    "duplicate",
+    "duplicate_selected",
+    "duplicate_visible",
+    "error",
+    "error_selected",
+    "error_visible",
+    "hint",
+    "hint_selected",
+    "hint_visible",
+    "indicator_selected",
+    "indicator_visible",
+    "info",
+    "info_selected",
+    "info_visible",
+    "modified",
+    "modified_selected",
+    "modified_visible",
+    "numbers",
+    "numbers_selected",
+    "numbers_visible",
+    "offset_separator",
+    "pick",
+    "pick_selected",
+    "pick_visible",
+    "separator",
+    "separator_selected",
+    "separator_visible",
+    "tab",
+    "tab_close",
+    "tab_separator",
+    "tab_separator_selected",
+    "trunc_marker",
+    "warning",
+    "warning_selected",
+    "warning_visible",
+  } do
+    highlights[group] = { bg = { highlight = "LunaVimTab", attribute = "bg" } }
+  end
+  highlights.tab = {
+    fg = { highlight = "LunaVimTab", attribute = "fg" },
+    bg = { highlight = "LunaVimTab", attribute = "bg" },
+  }
+  highlights.tab_selected = {
+    fg = { highlight = "LunaVimTabSelected", attribute = "fg" },
+    bg = { highlight = "LunaVimTabSelected", attribute = "bg" },
+    bold = true,
+  }
+  return highlights
+end
+
 return {
-  -- statue line
+  -- Status line
   {
     "nvim-lualine/lualine.nvim",
     event = "VeryLazy",
@@ -7,15 +65,15 @@ return {
       options = {
         theme = "tokyonight",
         globalstatus = true,
-        component_separator = "|",
-        section_separators = { left = LunaVim.icons.ui.BoldDividerRight, right = LunaVim.icons.ui.BoldDividerLeft },
+        component_separators = { left = "│", right = "│" },
+        section_separators = { left = "", right = "" },
         disabled_filetypes = { statusline = { "dashboard", "alpha", "starter" } },
       },
       sections = {
         lualine_b = { { "branch", icon = LunaVim.icons.git.Branch }, { "diff", symbols = LunaVim.icons.git } },
         lualine_c = {
           { "filename", path = 1, shorting_target = 60 },
-          { "diagnostics", symbols = LunaVim.icons.diagnostics }
+          { "diagnostics", symbols = LunaVim.icons.diagnostics },
         },
         lualine_x = { "encoding", "fileformat", "filetype" },
       },
@@ -42,61 +100,11 @@ return {
         },
         diagnostics_indicator = function(count, level)
           local icons = LunaVim.icons.diagnostics
-          local icon = level:match "error" and icons.Error or icons.Warn
+          local icon = ({ error = icons.Error, warning = icons.Warn, info = icons.Info, hint = icons.Hint })[level] or icons.Info
           return " " .. icon .. count
         end,
       },
-      highlights = {
-        background = { bg = "none" },
-        fill = { bg = "none" },
-        buffer_selected = {
-          bg = "none",
-          fg = { highlight = "LunaVimBufferSelected", attribute = "fg" },
-        },
-        buffer_visible = {
-          bg = "none",
-          fg = { highlight = "LunaVimBufferVisible", attribute = "fg" },
-        },
-        close_button = { bg = "none" },
-        close_button_selected = { bg = "none" },
-        close_button_visible = { bg = "none" },
-        duplicate = { bg = "none" },
-        duplicate_selected = { bg = "none" },
-        duplicate_visible = { bg = "none" },
-        error = { bg = "none" },
-        error_selected = { bg = "none" },
-        error_visible = { bg = "none" },
-        hint = { bg = "none" },
-        hint_selected = { bg = "none" },
-        hint_visible = { bg = "none" },
-        indicator_selected = { bg = "none" },
-        indicator_visible = { bg = "none" },
-        info = { bg = "none" },
-        info_selected = { bg = "none" },
-        info_visible = { bg = "none" },
-        modified = { bg = "none" },
-        modified_selected = { bg = "none" },
-        modified_visible = { bg = "none" },
-        numbers = { bg = "none" },
-        numbers_selected = { bg = "none" },
-        numbers_visible = { bg = "none" },
-        offset_separator = { bg = "none" },
-        pick = { bg = "none" },
-        pick_selected = { bg = "none" },
-        pick_visible = { bg = "none" },
-        separator = { bg = "none" },
-        separator_selected = { bg = "none" },
-        separator_visible = { bg = "none" },
-        tab = { bg = "none" },
-        tab_close = { bg = "none" },
-        tab_selected = { bg = "none" },
-        tab_separator = { bg = "none" },
-        tab_separator_selected = { bg = "none" },
-        trunc_marker = { bg = "none" },
-        warning = { bg = "none" },
-        warning_selected = { bg = "none" },
-        warning_visible = { bg = "none" },
-      },
+      highlights = tab_highlights(),
     },
   },
   -- icons
@@ -125,14 +133,14 @@ return {
           end
           local ft_icon, ft_color = devicons.get_icon_color(filename)
           local modified = vim.bo[props.buf].modified
+          local group = not props.focused and "LunaVimInclineFileInactive" or modified and "LunaVimInclineFileModified" or "LunaVimInclineFile"
 
           return {
-            { " ", guibg = "NONE" },
             {
-              { ft_icon and (" " .. ft_icon .. " ") or "", guifg = ft_color, guibg = "NONE" },
-              { filename .. " ", group = modified and "LunaVimInclineFileModified" or "LunaVimInclineFile" },
+              { ft_icon and (" " .. ft_icon .. " ") or " ", guifg = props.focused and ft_color or nil },
+              filename .. " ",
+              group = group,
             },
-            { " ", guibg = "NONE" },
           }
         end,
       }

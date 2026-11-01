@@ -1,3 +1,5 @@
+local ui = require("lunavim.config.ui").get()
+
 return {
   -- Notice and notify
   {
@@ -8,6 +10,8 @@ return {
     },
     opts = {
       lsp = {
+        -- Blink owns signature help, so typing a call opens one popup.
+        signature = { enabled = false },
         override = {
           ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
           ["vim.lsp.util.set_formatting_pair"] = true,
@@ -24,6 +28,13 @@ return {
         command_palette = true, -- position the cmdline and popupmenu together
         long_message_to_split = true, -- long messages will be sent to a split
         lsp_doc_border = true, -- add a border to hover docs and signature help
+      },
+      views = {
+        cmdline_popup = {
+          border = { style = "rounded", padding = { 0, 1 } },
+          win_options = { winblend = ui.float_blend },
+        },
+        popup = { win_options = { winblend = ui.float_blend } },
       },
       redirect = {
         view = "notify",

@@ -1,3 +1,6 @@
+local ui_config = require "lunavim.config.ui"
+local ui = ui_config.get()
+
 return {
   {
     "folke/snacks.nvim",
@@ -6,7 +9,10 @@ return {
     opts = {
       bigfile = { enabled = true },
       dashboard = { enabled = true },
-      indent = { enabled = true, animate = { enabled = true } },
+      indent = {
+        enabled = true,
+        animate = { enabled = not ui.reduced_motion, duration = { step = 10, total = ui.animation_ms } },
+      },
       notifier = { enabled = true, timeout = 5000 },
       input = { enabled = true },
       picker = {
@@ -14,31 +20,31 @@ return {
           reuse_win = false,
         },
         enabled = true,
+        show_delay = 0,
+        sources = require("lunavim.search").sources(),
         layout = {
-          preset = function()
-            return "luna_vertical"
-          end,
+          preset = ui_config.picker_preset,
         },
         layouts = {
           luna_vertical = {
             layout = {
               backdrop = false,
-              width = 0.95,
-              height = 0.95,
+              width = 0.92,
+              height = 0.88,
               box = "vertical",
               border = "rounded",
               title = "{title} {live} {flags}",
               title_pos = "center",
               { win = "input", height = 1, border = "bottom", title = "{icon} {title}", title_pos = "center" },
               { win = "list", border = "none" },
-              { win = "preview", title = "{preview}", border = "top", height = 0.75 },
+              { win = "preview", title = "{preview}", border = "top", height = 0.48 },
             },
           },
           luna_horizontal = {
             layout = {
               backdrop = false,
-              width = 0.95,
-              height = 0.95,
+              width = 0.90,
+              height = 0.86,
               box = "horizontal",
               border = "rounded",
               title = "{title} {live} {flags}",
@@ -49,12 +55,13 @@ return {
                 { win = "input", height = 1, border = "bottom", title = "{icon} {title}", title_pos = "center" },
                 { win = "list", border = "none" },
               },
-              { win = "preview", title = "{preview}", width = 0.75 },
+              { win = "preview", title = "{preview}", width = 0.55 },
             },
           },
         },
         win = {
           input = {
+            wo = { winblend = ui.float_blend },
             keys = {
               ["<Esc>"] = { "close", mode = { "n", "i" } },
               ["<C-j>"] = { "list_down", mode = { "i", "n" } },
@@ -64,6 +71,8 @@ return {
               ["<C-p>"] = { "toggle_preview", mode = { "i", "n" } },
             },
           },
+          list = { wo = { winblend = ui.float_blend } },
+          preview = { wo = { winblend = ui.float_blend } },
         },
       },
       -- explorer = { enabled = true },
@@ -122,10 +131,14 @@ return {
       scroll = { enabled = false },
       scope = { enabled = true },
       styles = {
-        notification = { border = "rounded", wo = { winblend = 0, wrap = true } },
-        picker = { border = "rounded" },
+        notification = { border = "rounded", wo = { winblend = ui.float_blend, wrap = true } },
+        picker = { border = "rounded", wo = { winblend = ui.float_blend } },
       },
     },
     keys = LunaVim.plugin_lazy "snacks.nvim",
+    config = function(_, opts)
+      require("snacks").setup(opts)
+      require("lunavim.search").setup()
+    end,
   },
 }

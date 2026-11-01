@@ -25,6 +25,7 @@ return {
       local lsp_keymaps = require "lunavim.plugins.lsp.keymaps"
 
       vim.api.nvim_create_autocmd("LspAttach", {
+        group = vim.api.nvim_create_augroup("LunaVimLspAttach", { clear = true }),
         callback = function(args)
           local client = vim.lsp.get_client_by_id(args.data.client_id)
           if client then
@@ -75,7 +76,7 @@ return {
   {
     "stevearc/conform.nvim",
     event = { "BufWritePre" },
-    cmd = { "ConformInfo" },
+    cmd = { "ConformInfo", "LunaSpellFix" },
     opts = {
       formatters_by_ft = {
         cpp = { "clang-format" },
@@ -89,15 +90,20 @@ return {
             return { "isort", "black" }
           end
         end,
-        cmake = { "cmakelang" },
-        -- Use the "*" filetype to run formatters on all filetypes.
-        ["*"] = { "codespell" },
+        cmake = { "cmake_format" },
         -- Use the "_" filetype to run formatters on filetypes that don't
         -- have other formatters configured.
         ["_"] = { "trim_whitespace" },
       },
       -- format_on_save = { timeout_ms = 500, lsp_format = "fallback" },
     },
+    config = function(_, opts)
+      local conform = require "conform"
+      conform.setup(opts)
+      vim.api.nvim_create_user_command("LunaSpellFix", function()
+        conform.format { formatters = { "codespell" }, async = true }
+      end, { desc = "Correct spelling in the current buffer" })
+    end,
   },
   {
     "folke/trouble.nvim",

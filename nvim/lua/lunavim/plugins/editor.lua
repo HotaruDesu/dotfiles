@@ -153,9 +153,12 @@ return {
     "folke/persistence.nvim",
     event = "BufReadPre",
     opts = {
-      options = { "buffers", "curdir", "tabpages", "winsize" },
       need = 1,
     },
+    config = function(_, opts)
+      vim.opt.sessionoptions = { "buffers", "curdir", "tabpages", "winsize" }
+      require("persistence").setup(opts)
+    end,
     keys = LunaVim.plugin_lazy "persistence.nvim",
   },
   -- tmux

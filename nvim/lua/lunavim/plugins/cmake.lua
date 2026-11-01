@@ -81,5 +81,10 @@ return {
       cmake_virtual_text_support = true,
       cmake_use_scratch_buffer = false,
     },
+    config = function(_, opts)
+      local cmake = require "cmake-tools"
+      cmake.setup(opts)
+      require("lunavim.lsp.cmake").setup(cmake)
+    end,
   },
 }

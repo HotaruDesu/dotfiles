@@ -1,11 +1,5 @@
 local M = {}
 
-local function lock_table(list)
-  for _, tbl in ipairs(list) do
-    LunaVim.util.lock_table(tbl)
-  end
-end
-
 local generic_opts_any = { noremap = true, silent = true }
 
 local generic_opts = {
@@ -132,7 +126,6 @@ local plugins = {
     { "gD", function() Snacks.picker.lsp_declarations({ jump = { reuse_win = false } }) end, { desc = "Goto Declaration" } },
     { "gi", function() Snacks.picker.lsp_implementations({ jump = { reuse_win = false } }) end, { desc = "Goto Implementation" } },
     { "gy", function() Snacks.picker.lsp_type_definitions() end, { desc = "Goto T[y]pe Definition" } },
-    { "ghc", function() Snacks.picker.lsp_incoming_calls() end, { desc = "C[a]lls Incoming" } },
     { "ghc", function() Snacks.picker.lsp_outgoing_calls() end, { desc = "C[a]lls Outgoing" } },
     { "<leader>ss", function() Snacks.picker.lsp_symbols() end, { desc = "LSP Symbols" } },
     { "<leader>sS", function() Snacks.picker.lsp_workspace_symbols() end, { desc = "LSP Workspace Symbols" } },
@@ -211,8 +204,6 @@ local plugins = {
   },
 }
 
-lock_table { generic_opts_any, generic_opts, mode_adapter, mode_radapter, defaults, plugins }
-
 function M.set_keymaps(mode, key, val)
   local opts = generic_opts[mode_radapter[mode]] or generic_opts_any
   if type(val) == "table" then
@@ -242,15 +233,18 @@ function M.load(keymaps)
 end
 
 function M.get_defaults()
-  return defaults
+  return vim.deepcopy(defaults)
 end
 
 function M.get_adapter()
-  return mode_adapter
+  return vim.deepcopy(mode_adapter)
 end
 
 function M.load_defaults()
   M.load(M.get_defaults())
+  vim.api.nvim_create_user_command("LunaIncomingCalls", function()
+    Snacks.picker.lsp_incoming_calls()
+  end, { desc = "LSP incoming calls", force = true })
 end
 
 function M.clear_defaults(mappings)
@@ -258,39 +252,39 @@ function M.clear_defaults(mappings)
   for mode, keymaps in pairs(mappings) do
     for key, _ in pairs(keymaps) do
       if default[mode][key] ~= nil then
-        M.set_keymaps(mode, key)
+        M.set_keymaps(mode_adapter[mode] or mode, key)
       end
     end
   end
 end
 
-function M.get_plguins()
-  return plugins
+function M.get_plugins()
+  return vim.deepcopy(plugins)
 end
 
 local function report_keymaps(default_plugins, plugin_name)
-  local cadidete_name = nil
+  local candidate_name = nil
   for k in pairs(default_plugins) do
-    if k:lower():find(plugin_name:lower()) then
-      cadidete_name = k
+    if k:lower():find(plugin_name:lower(), 1, true) then
+      candidate_name = k
       break
     end
   end
-  if cadidete_name then
-    LunaVim.util.log_warn(("plugin: %s don't have keymaps, do you mean: %s?"):format(plugin_name, cadidete_name))
+  if candidate_name then
+    LunaVim.util.log_warn(("plugin: %s don't have keymaps, do you mean: %s?"):format(plugin_name, candidate_name))
   else
     LunaVim.util.log_warn(("plugin: %s don't have keymaps"):format(plugin_name))
   end
 end
 
-function M.nvim_normized(keymaps)
-  local opts = vim.fn.deepcopy(keymaps[3])
-  local mode = opts.mode and opts.mode or { "n" }
+function M.normalize_nvim(keymaps)
+  local opts = vim.deepcopy(keymaps[3] or {})
+  local mode = keymaps.mode or opts.mode or { "n" }
   opts.mode = nil
   return { mode, keymaps[1], keymaps[2], opts }
 end
 
-function M.lazy_normized(keymaps)
+function M.normalize_lazy(keymaps)
   local opts = vim.fn.deepcopy(keymaps[3] or {})
   opts.mode = keymaps.mode or opts.mode or { "n" }
   opts[1] = keymaps[1]
@@ -298,40 +292,46 @@ function M.lazy_normized(keymaps)
   return opts
 end
 
-function M.plugin_normized(keymaps, opts)
-  local finial_keymaps = {}
+function M.normalize_plugin(keymaps, opts)
+  local normalized_keymaps = {}
   for _, mapping in ipairs(keymaps) do
     if opts and opts.lazy then
-      table.insert(finial_keymaps, M.lazy_normized(mapping))
+      table.insert(normalized_keymaps, M.normalize_lazy(mapping))
     else
-      table.insert(finial_keymaps, M.nvim_normized(mapping))
+      table.insert(normalized_keymaps, M.normalize_nvim(mapping))
     end
   end
-  return finial_keymaps
+  return normalized_keymaps
 end
 
 function M.plugin_lazy(plugin_name)
-  local local_plguins = M.get_plguins()
-  if local_plguins[plugin_name] == nil then
-    return report_keymaps(local_plguins, plugin_name)
+  local local_plugins = M.get_plugins()
+  if local_plugins[plugin_name] == nil then
+    return report_keymaps(local_plugins, plugin_name)
   end
-  return M.plugin_normized(M.get_plguins()[plugin_name], { lazy = true })
+  return M.normalize_plugin(M.get_plugins()[plugin_name], { lazy = true })
 end
 
 function M.plugin_nvim(plugin_name)
-  local local_plguins = M.get_plguins()
-  if local_plguins[plugin_name] == nil then
-    return report_keymaps(local_plguins, plugin_name)
+  local local_plugins = M.get_plugins()
+  if local_plugins[plugin_name] == nil then
+    return report_keymaps(local_plugins, plugin_name)
   end
-  return M.plugin_normized(M.get_plguins()[plugin_name])
+  return M.normalize_plugin(M.get_plugins()[plugin_name])
 end
 
 function M.plugin_raw(plugin_name)
-  local local_plguins = M.get_plguins()
-  if local_plguins[plugin_name] == nil then
-    return report_keymaps(local_plguins, plugin_name)
+  local local_plugins = M.get_plugins()
+  if local_plugins[plugin_name] == nil then
+    return report_keymaps(local_plugins, plugin_name)
   end
-  return M.get_plguins()[plugin_name]
+  return M.get_plugins()[plugin_name]
 end
+
+-- Compatibility for callers using the original helper names.
+M.get_plguins = M.get_plugins
+M.nvim_normized = M.normalize_nvim
+M.lazy_normized = M.normalize_lazy
+M.plugin_normized = M.normalize_plugin
 
 return M

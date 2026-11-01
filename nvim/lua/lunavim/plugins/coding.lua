@@ -1,3 +1,5 @@
+local ui = require("lunavim.config.ui").get()
+
 return {
   -- CMP
   {
@@ -38,7 +40,7 @@ return {
           min_width = 30,
           max_height = 10,
           border = "rounded",
-          winblend = 0,
+          winblend = ui.float_blend,
           draw = {
             padding = 1,
             treesitter = { "lsp" },
@@ -79,7 +81,7 @@ return {
           update_delay_ms = 50,
           window = {
             border = "rounded",
-            winblend = 0,
+            winblend = ui.float_blend,
             max_width = 72,
             max_height = 18,
           },
@@ -101,7 +103,7 @@ return {
         trigger = {
           show_on_insert = true,
         },
-        window = { border = "rounded" },
+        window = { border = "rounded", winblend = ui.float_blend },
       },
       sources = {
         min_keyword_length = 2,

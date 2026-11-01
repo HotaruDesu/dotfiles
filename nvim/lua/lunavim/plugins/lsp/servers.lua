@@ -21,20 +21,7 @@ M.clangd = {
     "--function-arg-placeholders=1", -- function placeholders for <Tab>
     "--fallback-style=llvm",
   },
-  on_new_config = function(new_config, new_root_dir)
-    local cmake_project = vim.fs.find("CMakeLists.txt", {
-      path = new_root_dir,
-      upward = true,
-    })[1]
-    if not cmake_project then
-      return
-    end
-
-    local ok, cmake = pcall(require, "cmake-tools")
-    if ok then
-      cmake.clangd_on_new_config(new_config)
-    end
-  end,
+  before_init = require("lunavim.lsp.cmake").before_init,
 }
 
 M.gopls = {
@@ -112,7 +99,7 @@ M.lua_ls = {
 }
 
 M.markdown_oxide = {
-  root_dir = require("lspconfig.util").root_pattern(".obsidian", "obsidian.vimrc", ".git"),
+  root_markers = { ".obsidian", "obsidian.vimrc", ".git" },
 }
 
 M.ts_ls = {}

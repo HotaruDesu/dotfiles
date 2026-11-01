@@ -1,8 +1,7 @@
-- [x] Refactor plugin keymaps logic
-- [ ] Intro logger module
-- [ ] Refactor total strucutre
-- [-] replace nvim-cmp by blink.cmd
-    - [x] remove nvim-cmp
-    - [ ] remove keymaps for nvim-cmp and write keymaps for blink.cmp
+- [x] Preserve and document effective keyboard mappings.
+- [x] Use explicit initialization and utility exports.
+- [x] Integrate Blink completion and one signature-help provider.
+- [x] Separate signature parsing, discovery, edits and UI.
+- [x] Add unified Neovide/terminal UI profiles and regression checks.
 
 
