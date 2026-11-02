@@ -1,0 +1,51 @@
+{
+  "environment": {
+    "machine": "arm64",
+    "nvim": "0.12.5"
+  },
+  "sources": {
+    "files": {
+      "compatible": false,
+      "snacks": {
+        "input_median_ms": 24.653542,
+        "first_median_ms": 26.73425,
+        "first_p95_ms": 28.618334,
+        "update_median_ms": 33.827083,
+        "update_p95_ms": 199.702416
+      }
+    },
+    "grep": {
+      "snacks": {
+        "input_median_ms": 33.950291,
+        "first_median_ms": 33.950291,
+        "first_p95_ms": 66.866625,
+        "update_median_ms": 87.314666,
+        "update_p95_ms": 204.981416
+      },
+      "passes_latency_gate": false,
+      "compatible": true,
+      "fff": {
+        "input_median_ms": 39.601375,
+        "first_median_ms": 39.601375,
+        "first_p95_ms": 49.805541,
+        "update_median_ms": 54.816,
+        "update_p95_ms": 202.698375
+      }
+    }
+  },
+  "directory": "/Users/hotaru/.local/share/nvim/lazy",
+  "native": {
+    "rss": 72384512,
+    "compatible": {
+      "files": false,
+      "grep": true
+    },
+    "files": 6722,
+    "ready": true,
+    "root": "/Users/hotaru/.local/share/nvim/lazy",
+    "pid": 12845
+  },
+  "runs": 20,
+  "preview_delay_ms": 120,
+  "index_prepare_ms": 120.895166
+}
