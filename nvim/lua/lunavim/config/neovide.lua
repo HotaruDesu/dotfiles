@@ -12,25 +12,28 @@ function M.setup()
   vim.g.neovide_normal_opacity = 1.0
   vim.g.neovide_window_blurred = ui.glass
   for _, edge in ipairs { "top", "bottom", "left", "right" } do
-    vim.g["neovide_padding_" .. edge] = 6
+    vim.g["neovide_padding_" .. edge] = 10
   end
 
-  vim.g.neovide_position_animation_length = ui.animation_ms / 1000
+  vim.g.neovide_position_animation_length = ui.window_animation_ms / 1000
   vim.g.neovide_scroll_animation_length = ui.scroll_ms / 1000
-  vim.g.neovide_scroll_animation_far_lines = 1
-  vim.g.neovide_cursor_animation_length = ui.animation_ms / 1000
+  -- Preserve full-screen motion on distant jumps, with a short duration.
+  vim.g.neovide_scroll_animation_far_lines = 9999
+  vim.g.neovide_cursor_animation_length = ui.cursor_animation_ms / 1000
   vim.g.neovide_cursor_short_animation_length = ui.reduced_motion and 0 or 0.05
-  vim.g.neovide_cursor_trail_size = ui.reduced_motion and 0 or 0.6
+  vim.g.neovide_cursor_trail_size = ui.reduced_motion and 0 or 0.55
   vim.g.neovide_cursor_animate_in_insert_mode = not ui.reduced_motion
   vim.g.neovide_cursor_animate_command_line = not ui.reduced_motion
   vim.g.neovide_cursor_antialiasing = true
   vim.g.neovide_cursor_smooth_blink = not ui.reduced_motion
+  -- Small square flecks share the GUI's blue cursor accent and rectangular
+  -- text geometry. Low drift keeps them close to the navigation smear.
   vim.g.neovide_cursor_vfx_mode = ui.reduced_motion and "" or "pixiedust"
-  vim.g.neovide_cursor_vfx_particle_lifetime = 0.2
-  vim.g.neovide_cursor_vfx_particle_density = 0.15
-  vim.g.neovide_cursor_vfx_particle_speed = 5.0
-  vim.g.neovide_cursor_vfx_particle_phase = 1.2
-  vim.g.neovide_cursor_vfx_particle_curl = 0.8
+  vim.g.neovide_cursor_vfx_opacity = 120.0
+  vim.g.neovide_cursor_vfx_particle_lifetime = 0.22
+  vim.g.neovide_cursor_vfx_particle_density = 1.1
+  vim.g.neovide_cursor_vfx_particle_speed = 1.5
+  vim.g.neovide_cursor_vfx_particle_curl = 0.0
 
   -- A picker is several adjacent floats; per-grid blur/shadows draw seams
   -- through its interior. Native window blur still provides the glass effect.
@@ -46,10 +49,9 @@ function M.setup()
   vim.g.neovide_remember_window_size = true
   vim.g.neovide_refresh_rate_idle = 5
   vim.g.neovide_confirm_quit = true
-  vim.g.neovide_input_macos_option_is_meta = true
   vim.g.neovide_input_macos_option_key_is_meta = "both"
-  vim.o.guifont = "Maple Mono NF CN:h12"
-  vim.opt.linespace = 1
+  vim.o.guifont = "Maple Mono NF CN:h14"
+  vim.opt.linespace = 2
   vim.g.neovide_scale_factor = 1.0
 
   -- Preserve the existing native-app shortcuts while keeping rendering options
@@ -68,7 +70,6 @@ function M.setup()
   vim.keymap.set({ "n", "i", "v" }, "<D-0>", function()
     vim.g.neovide_scale_factor = 1.0
   end, { desc = "Reset Neovide scale" })
-  vim.keymap.set({ "n", "i", "v" }, "<D-s>", "<Cmd>silent update<CR>", { desc = "Save file" })
   vim.keymap.set("n", "<F11>", function()
     vim.g.neovide_fullscreen = not vim.g.neovide_fullscreen
   end, { desc = "Toggle Neovide fullscreen" })

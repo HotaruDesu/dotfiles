@@ -1,9 +1,46 @@
+local cmdline = require "lunavim.config.cmdline"
+local navigation = require "lunavim.completion.navigation"
+local text = require "lunavim.completion.text"
 local ui = require("lunavim.config.ui").get()
+local prose_sources = { "lsp", "snippets", "path", "buffer", "dictionary" }
+
+local function cmdline_position()
+  local pos = vim.g.ui_cmdline_pos
+  if not pos then
+    return { vim.o.lines - math.max(1, vim.o.cmdheight), 0 }
+  end
+  local row, col = pos[1] - 1, pos[2]
+  local prompt, edge = cmdline.card_edge()
+  if prompt then
+    row = edge
+    local ctx = require("blink.cmp").get_context()
+    if ctx then
+      col = cmdline.word_col(prompt, ctx.bounds.start_col - 1) - ctx.bounds.start_col
+    end
+  end
+  return { row, col }
+end
 
 return {
   -- CMP
   {
     "saghen/blink.cmp",
+    event = { "InsertEnter", "CmdlineEnter" },
+    init = function()
+      vim.api.nvim_create_autocmd("User", {
+        group = vim.api.nvim_create_augroup("LunaCmdlineCompletion", { clear = true }),
+        pattern = "BlinkCmpMenuOpen",
+        callback = function()
+          if vim.fn.getcmdtype() == ":" then
+            for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+              if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "blink-cmp-menu" then
+                vim.wo[win].winhighlight = cmdline.menu_highlight(vim.wo[win].winhighlight)
+              end
+            end
+          end
+        end,
+      })
+    end,
     dependencies = {
       -- snippets
       "rafamadriz/friendly-snippets",
@@ -11,15 +48,20 @@ return {
       "Kaiser-Yang/blink-cmp-dictionary",
     },
     version = "1.*",
+    config = function(_, opts)
+      require("blink.cmp").setup(opts)
+      require("lunavim.completion.menu").setup()
+      navigation.setup()
+    end,
     opts = {
       enabled = function()
         return vim.bo.filetype ~= "oil" and vim.bo.buftype ~= "prompt" and vim.b.completion ~= false
       end,
       keymap = {
         preset = "default",
-        ["<C-\\>"] = { "show", "show_documentation", "hide_documentation" },
-        ["<C-k>"] = { "select_prev", "fallback" },
-        ["<C-j>"] = { "select_next", "fallback" },
+        ["<C-\\>"] = { navigation.show_full, "show_documentation", "hide_documentation" },
+        ["<C-k>"] = { navigation.select_prev, "fallback" },
+        ["<C-j>"] = { navigation.select_next, "fallback" },
         ["<C-b>"] = { "scroll_documentation_up", "fallback" },
         ["<C-f>"] = { "scroll_documentation_down", "fallback" },
         ["<C-u>"] = { "scroll_signature_up", "fallback" },
@@ -37,8 +79,13 @@ return {
         menu = {
           auto_show = true,
           auto_show_delay_ms = 0,
-          min_width = 30,
+          min_width = 14,
           max_height = 10,
+          cmdline_position = cmdline_position,
+          direction_priority = function()
+            local _, _, direction = cmdline.card_edge()
+            return direction and { direction } or { "s", "n" }
+          end,
           border = "rounded",
           winblend = ui.float_blend,
           draw = {
@@ -51,10 +98,16 @@ return {
             },
             components = {
               label = {
-                width = { fill = true, max = 45 },
+                width = {
+                  fill = true,
+                  max = function(ctx)
+                    return ctx.mode == "cmdline" and math.max(1, math.min(45, vim.o.columns - 4)) or 45
+                  end,
+                },
               },
               label_description = {
                 width = { max = 25 },
+                text = require("lunavim.completion.semantic").description,
               },
               source_name = {
                 width = { max = 8 },
@@ -115,30 +168,41 @@ return {
           "buffer",
         },
         per_filetype = {
-          cpp = { "lsp", "path", "snippets", "buffer" },
-          gitcommit = { "lsp", "snippets", "path", "buffer" },
-          NeogitCommitMessage = { "lsp", "snippets", "path", "buffer" },
-          markdown = { "lsp", "snippets", "path", "buffer", "dictionary" },
+          cpp = { "lsp", "path", "cpp_syntax", "snippets", "buffer" },
+          text = prose_sources,
+          gitcommit = prose_sources,
+          NeogitCommitMessage = prose_sources,
+          markdown = prose_sources,
         },
         providers = {
           lsp = {
             name = "LSP",
             module = "blink.cmp.sources.lsp",
-            fallbacks = {
-              "buffer",
-            },
-            score_offset = 5,
+            fallbacks = {},
+            score_offset = 2,
           },
+          path = { fallbacks = {}, override = { get_completions = text.path_completions } },
+          cpp_syntax = { name = "C++", module = "lunavim.completion.cpp", min_keyword_length = 3, score_offset = -3 },
           buffer = {
             name = "Buffer",
             module = "blink.cmp.sources.buffer",
             min_keyword_length = 2,
-            score_offset = -5,
+            score_offset = function(ctx)
+              return ctx.mode == "default" and -1 or -5
+            end,
+            opts = {
+              get_bufnrs = function()
+                return vim.tbl_filter(function(buf)
+                  return vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buflisted and vim.bo[buf].buftype == "" and vim.b[buf].completion ~= false
+                end, vim.api.nvim_list_bufs())
+              end,
+            },
           },
           snippets = {
             score_offset = -5,
             min_keyword_length = 2,
             opts = {
+              get_filetype = text.snippet_filetype,
               friendly_snippets = true, -- default
               extended_filetypes = {
                 markdown = { "jekyll" },
@@ -147,13 +211,7 @@ return {
               },
             },
           },
-          dictionary = {
-            module = "blink-cmp-dictionary",
-            name = "Dict",
-            min_keyword_length = 1,
-            opts = {},
-            score_offset = 10,
-          },
+          dictionary = text.dictionary_provider(),
           lazydev = {
             name = "LazyDev",
             module = "lazydev.integrations.blink",
@@ -166,13 +224,16 @@ return {
         enabled = true,
         keymap = { preset = "cmdline" },
         sources = function()
-          local type = vim.fn.getcmdtype()
+          local cmdtype = vim.fn.getcmdtype()
+          if cmdtype == "" then
+            cmdtype = vim.fn.getcmdwintype()
+          end
           -- Search forward and backward
-          if type == "/" or type == "?" then
+          if cmdtype == "/" or cmdtype == "?" then
             return { "buffer" }
           end
           -- Commands
-          if type == ":" or type == "@" then
+          if cmdtype == ":" or cmdtype == "@" then
             return { "cmdline", "buffer" }
           end
           return {}
@@ -188,6 +249,7 @@ return {
           -- Whether to automatically show the window when new completion items are available
           -- Default is false for cmdline, true for cmdwin (command-line window)
           menu = {
+            draw = { columns = { { "label" } } },
             auto_show = function(ctx, _)
               return ctx.mode == "cmdwin"
             end,

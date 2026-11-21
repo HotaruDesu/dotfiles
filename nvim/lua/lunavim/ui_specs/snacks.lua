@@ -1,5 +1,20 @@
 local ui_config = require "lunavim.config.ui"
 local ui = ui_config.get()
+local picker_frame = { winhighlight = "FloatTitle:SnacksPickerBoxTitle" }
+
+local function style_terminal(win)
+  if win.opts.position == "float" then
+    if win.opts.border == nil then
+      win.opts.border = "rounded"
+    end
+    win.opts.wo.winhighlight = Snacks.util.winhl(win.opts.wo.winhighlight, {
+      Normal = "LunaVimTerminalFloat",
+      NormalNC = "LunaVimTerminalFloat",
+      NormalFloat = "LunaVimTerminalFloat",
+      FloatBorder = "LunaVimPanelBorder",
+    })
+  end
+end
 
 return {
   {
@@ -11,7 +26,8 @@ return {
       dashboard = { enabled = true },
       indent = {
         enabled = true,
-        animate = { enabled = not ui.reduced_motion, duration = { step = 10, total = ui.animation_ms } },
+        scope = { only_current = true },
+        animate = { enabled = false },
       },
       notifier = { enabled = true, timeout = 5000 },
       input = { enabled = true },
@@ -21,6 +37,12 @@ return {
         },
         enabled = true,
         show_delay = 0,
+        on_show = function(picker)
+          require("lunavim.search.motion").attach(picker)
+        end,
+        on_close = function(picker)
+          require("lunavim.search.motion").close(picker)
+        end,
         sources = require("lunavim.search").sources(),
         layout = {
           preset = ui_config.picker_preset,
@@ -34,10 +56,11 @@ return {
               box = "vertical",
               border = "rounded",
               title = "{title} {live} {flags}",
-              title_pos = "center",
-              { win = "input", height = 1, border = "bottom", title = "{icon} {title}", title_pos = "center" },
+              title_pos = "left",
+              wo = picker_frame,
+              { win = "input", height = 1, border = "bottom", title_pos = "left" },
               { win = "list", border = "none" },
-              { win = "preview", title = "{preview}", border = "top", height = 0.48 },
+              { win = "preview", title = "{preview}", title_pos = "left", border = "top", height = 0.48 },
             },
           },
           luna_horizontal = {
@@ -48,14 +71,16 @@ return {
               box = "horizontal",
               border = "rounded",
               title = "{title} {live} {flags}",
-              title_pos = "center",
+              title_pos = "left",
+              wo = picker_frame,
               {
                 box = "vertical",
                 border = "right",
-                { win = "input", height = 1, border = "bottom", title = "{icon} {title}", title_pos = "center" },
+                wo = { winhighlight = "FloatBorder:SnacksPickerListBorder" },
+                { win = "input", height = 1, border = "bottom", title_pos = "left" },
                 { win = "list", border = "none" },
               },
-              { win = "preview", title = "{preview}", width = 0.55 },
+              { win = "preview", title = "{preview}", title_pos = "left", border = "top", width = 0.55 },
             },
           },
         },
@@ -75,10 +100,10 @@ return {
           preview = { wo = { winblend = ui.float_blend } },
         },
       },
-      -- explorer = { enabled = true },
       terminal = {
         enabled = true,
         win = {
+          on_buf = style_terminal,
           bo = {
             filetype = "snacks_terminal",
           },
@@ -128,9 +153,16 @@ return {
       },
       words = { enabled = true },
       statuscolumn = { enabled = true },
-      scroll = { enabled = false },
+      scroll = {
+        enabled = not ui.neovide and not ui.reduced_motion,
+        animate = { duration = { step = 10, total = ui.scroll_ms } },
+        filter = function(buf)
+          return vim.bo[buf].buftype == "" and vim.g.snacks_scroll ~= false and vim.b[buf].snacks_scroll ~= false
+        end,
+      },
       scope = { enabled = true },
       styles = {
+        terminal = { backdrop = false },
         notification = { border = "rounded", wo = { winblend = ui.float_blend, wrap = true } },
         picker = { border = "rounded", wo = { winblend = ui.float_blend } },
       },
@@ -138,6 +170,9 @@ return {
     keys = LunaVim.plugin_lazy "snacks.nvim",
     config = function(_, opts)
       require("snacks").setup(opts)
+      if opts.scroll.enabled then
+        require("lunavim.config.scroll").setup()
+      end
       require("lunavim.search").setup()
     end,
   },

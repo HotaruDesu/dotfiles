@@ -161,7 +161,6 @@ return {
     end,
     keys = LunaVim.plugin_lazy "persistence.nvim",
   },
-  -- tmux
   -- TODO comment
   {
     "folke/todo-comments.nvim",
@@ -194,12 +193,4 @@ return {
       },
     },
   },
-  -- {
-  --   "chrisgrieser/nvim-spider",
-  --   lazy = true,
-  --   keys = LunaVim.plugin_lazy "nvim-spider",
-  --   opts = {
-  --     skipInsignificantPunctuation = false,
-  --   },
-  -- },
 }

@@ -1,15 +1,7 @@
 local M = {}
 
 local generic_opts_any = { noremap = true, silent = true }
-
-local generic_opts = {
-  insert_mode = generic_opts_any,
-  normal_mode = generic_opts_any,
-  visual_mode = generic_opts_any,
-  visual_block_mode = generic_opts_any,
-  command_mode = generic_opts_any,
-  term_mode = { silent = true },
-}
+local terminal_opts = { silent = true }
 
 local mode_adapter = {
   insert_mode = "i",
@@ -19,13 +11,6 @@ local mode_adapter = {
   command_mode = "c",
   term_mode = "t",
 }
-
-local mode_radapter = {}
-(function()
-  for k, v in pairs(mode_adapter) do
-    mode_radapter[v] = k
-  end
-end)()
 
 local defaults = {
   normal_mode = {
@@ -122,7 +107,8 @@ local plugins = {
     { "<leader>fc", function() Snacks.picker.grep_word { words = vim.fn.expand "<cword>" } end, { desc = "Visual selection or word", mode = { "n", "x" } } },
     -- lsp
     { "gr", function() Snacks.picker.lsp_references({ jump = { reuse_win = false } }) end, { desc = "LSP References", nowait = true } },
-    { "gd", function() Snacks.picker.lsp_definitions({ jump = { reuse_win = false } }) end, { desc = "LSP Definitions" } },
+    -- Wait for definitions before showing the picker so a single result can auto-confirm.
+    { "gd", function() Snacks.picker.lsp_definitions({ auto_confirm = true, show_delay = math.huge, jump = { reuse_win = false } }) end, { desc = "LSP Definitions" } },
     { "gD", function() Snacks.picker.lsp_declarations({ jump = { reuse_win = false } }) end, { desc = "Goto Declaration" } },
     { "gi", function() Snacks.picker.lsp_implementations({ jump = { reuse_win = false } }) end, { desc = "Goto Implementation" } },
     { "gy", function() Snacks.picker.lsp_type_definitions() end, { desc = "Goto T[y]pe Definition" } },
@@ -151,8 +137,6 @@ local plugins = {
     { "<leader>th", function() Snacks.terminal(nil, { win = { position = "bottom" } }) end, { desc = "Toggle Terminal (Bottom)" } },
     { "<leader>tv", function() Snacks.terminal(nil, { win = { position = "right" } }) end, { desc = "Toggle Terminal (Right)" } },
     { "<leader>z", function() Snacks.zen() end, { desc = "Toggle Zen Mode" } },
-    -- { "]]", function() Snacks.words.jump(vim.v.count1) end, { desc = "Next Reference", mode = { "n", "t" } } },
-    -- { "[[", function() Snacks.words.jump(-vim.v.count1) end, { desc = "Prev Reference", mode = { "n", "t" } } },
   },
   ["mini.surround"] = {
     add       = ",a", -- add:       ,a + textobj +    sign
@@ -164,7 +148,6 @@ local plugins = {
   },
   ["lsp"] = {
     { "K", function() vim.lsp.buf.hover({ border = "rounded" }) end, { desc = "Hover", mode = "n" } },
-    -- { "<C-k>", function() vim.lsp.buf.signature_help({ border = "rounded" }) end, { desc = "Signature help", mode = "n" } },
   },
   ["persistence.nvim"] = {
     { "<leader>ws", function() require("persistence").save() end, { desc = "Save Session" }, },
@@ -205,7 +188,7 @@ local plugins = {
 }
 
 function M.set_keymaps(mode, key, val)
-  local opts = generic_opts[mode_radapter[mode]] or generic_opts_any
+  local opts = mode == "t" and terminal_opts or generic_opts_any
   if type(val) == "table" then
     if val[2] ~= nil then
       opts = vim.tbl_deep_extend("force", opts, val[2])
@@ -242,6 +225,7 @@ end
 
 function M.load_defaults()
   M.load(M.get_defaults())
+  vim.api.nvim_create_user_command("W", "write", { desc = "Write the current buffer" })
   vim.api.nvim_create_user_command("LunaIncomingCalls", function()
     Snacks.picker.lsp_incoming_calls()
   end, { desc = "LSP incoming calls", force = true })
@@ -262,9 +246,9 @@ function M.get_plugins()
   return vim.deepcopy(plugins)
 end
 
-local function report_keymaps(default_plugins, plugin_name)
+local function report_keymaps(plugin_name)
   local candidate_name = nil
-  for k in pairs(default_plugins) do
+  for k in pairs(plugins) do
     if k:lower():find(plugin_name:lower(), 1, true) then
       candidate_name = k
       break
@@ -304,28 +288,26 @@ function M.normalize_plugin(keymaps, opts)
   return normalized_keymaps
 end
 
-function M.plugin_lazy(plugin_name)
-  local local_plugins = M.get_plugins()
-  if local_plugins[plugin_name] == nil then
-    return report_keymaps(local_plugins, plugin_name)
+function M.plugin_raw(plugin_name)
+  local mappings = plugins[plugin_name]
+  if mappings then
+    return vim.deepcopy(mappings)
   end
-  return M.normalize_plugin(M.get_plugins()[plugin_name], { lazy = true })
+  report_keymaps(plugin_name)
+end
+
+function M.plugin_lazy(plugin_name)
+  local mappings = M.plugin_raw(plugin_name)
+  if mappings then
+    return M.normalize_plugin(mappings, { lazy = true })
+  end
 end
 
 function M.plugin_nvim(plugin_name)
-  local local_plugins = M.get_plugins()
-  if local_plugins[plugin_name] == nil then
-    return report_keymaps(local_plugins, plugin_name)
+  local mappings = M.plugin_raw(plugin_name)
+  if mappings then
+    return M.normalize_plugin(mappings)
   end
-  return M.normalize_plugin(M.get_plugins()[plugin_name])
-end
-
-function M.plugin_raw(plugin_name)
-  local local_plugins = M.get_plugins()
-  if local_plugins[plugin_name] == nil then
-    return report_keymaps(local_plugins, plugin_name)
-  end
-  return M.get_plugins()[plugin_name]
 end
 
 -- Compatibility for callers using the original helper names.

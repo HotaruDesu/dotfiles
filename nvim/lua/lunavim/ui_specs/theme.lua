@@ -39,11 +39,18 @@ return {
         hl.FloatTitle = { fg = c.blue, bg = surface.floating, bold = true }
         hl.NormalFloat = { fg = c.fg, bg = surface.floating }
         hl.WinSeparator = { fg = surface.border, bg = c.bg }
-        hl.CursorLine = { bg = c.bg_highlight }
+        hl.NormalNC = { fg = c.fg, bg = ui.transparent and c.none or surface.inactive }
+        hl.SignColumn = { fg = c.fg_gutter }
+        hl.FoldColumn = { fg = c.comment }
+        hl.Cursor = { fg = c.bg, bg = surface.accent }
+        hl.lCursor = { fg = c.bg, bg = surface.accent }
+        hl.CursorIM = { fg = c.bg, bg = surface.accent }
+        hl.CursorLine = { bg = surface.cursorline }
+        hl.CursorLineNr = { fg = surface.accent, bold = true }
         hl.Pmenu = { fg = c.fg, bg = surface.floating }
         hl.PmenuSel = { fg = c.fg, bg = surface.selected, bold = true }
 
-        -- Snacks window chrome: one surface, one accent, semantic colors stay intact.
+        -- Plugins inherit the base floating surface unless they own a distinct pane.
         local snacks_surfaces = {
           "SnacksNormal",
           "SnacksInputNormal",
@@ -95,9 +102,19 @@ return {
           hl[group] = { fg = c.fg, bg = surface.selected }
         end
 
+        hl.SnacksPickerInput = { fg = c.fg, bg = surface.picker_input }
+        hl.SnacksPickerInputBorder = { fg = surface.border, bg = surface.picker_input }
+        hl.SnacksPickerPreview = { fg = c.fg, bg = surface.picker_preview }
+        hl.SnacksPickerPreviewBorder = { fg = surface.border, bg = surface.picker_preview }
+        hl.SnacksPickerPreviewTitle = { fg = c.blue, bg = surface.picker_preview, bold = true }
+        hl.LunaVimPanelBorder = { fg = surface.panel_border, bg = surface.floating }
+        hl.SnacksPickerBoxBorder = { link = "LunaVimPanelBorder" }
+        hl.LunaVimTerminalFloat = { link = "NormalFloat" }
+
         hl.SnacksInputIcon = { fg = c.blue }
         hl.SnacksPickerFooter = { fg = c.comment, bg = surface.floating }
         hl.SnacksPickerPrompt = { fg = c.blue }
+        hl.LunaVimPickerMarker = { fg = surface.accent, bg = surface.floating }
         hl.SnacksPickerInputSearch = { fg = c.blue, bold = true }
         hl.SnacksPickerMatch = { fg = c.blue, bold = true }
         hl.SnacksPickerSelected = { fg = c.blue, bold = true }
@@ -118,13 +135,14 @@ return {
         hl.SnacksZenIcon = { fg = c.blue }
 
         -- Theme-aware colors consumed by plugins configured outside this hook.
-        hl.LunaVimBufferSelected = { fg = c.blue }
-        hl.LunaVimBufferVisible = { fg = c.fg_dark }
-        hl.LunaVimTabSelected = { fg = c.blue, bg = surface.selected, bold = true }
         hl.LunaVimTab = { fg = c.fg_dark, bg = surface.sidebar }
+        hl.LunaVimTabSelected = { fg = surface.tab_selected_fg, bg = surface.tab_selected, bold = true }
+        hl.LunaVimTabIndicator = { fg = surface.tab_indicator, bg = surface.tab_selected }
+        hl.LunaVimTabSeparator = { fg = surface.tab_separator, bg = surface.sidebar }
         hl.LunaVimInclineFile = { fg = c.fg, bg = surface.floating, bold = true }
-        hl.LunaVimInclineFileInactive = { fg = c.comment, bg = surface.sidebar }
-        hl.LunaVimInclineFileModified = { fg = c.blue, bg = surface.floating, bold = true, italic = true }
+        hl.LunaVimInclineFileInactive = { fg = c.fg_dark, bg = surface.sidebar }
+        hl.LunaVimInclineFileModified = { fg = c.blue, bg = surface.floating, bold = true }
+        hl.LunaVimInclineModifiedInactive = { fg = surface.accent, bg = surface.sidebar }
 
         local notifier_accents = {
           Debug = c.comment,
@@ -150,9 +168,13 @@ return {
         hl.BlinkCmpDocSeparator = { fg = c.dark5, bg = surface.floating }
         hl.BlinkCmpSignatureHelp = { fg = c.fg, bg = surface.floating }
         hl.BlinkCmpSignatureHelpBorder = { fg = surface.border, bg = surface.floating }
-        hl.NoiceCmdlinePopupBorder = { fg = surface.border, bg = surface.floating }
-        hl.NoiceCmdlinePopupTitle = { fg = c.blue, bg = surface.floating, bold = true }
-        hl.NoiceCmdlinePopup = { fg = c.fg, bg = surface.floating }
+        hl.NoiceCmdlinePopup = { fg = c.fg, bg = c.bg }
+        hl.NoiceCmdlinePopupTitle = { fg = c.blue, bg = c.bg, bold = true }
+        hl.NoiceCmdlinePopupBorder = { fg = surface.cmdline_border, bg = c.bg }
+        hl.NoiceCmdlineIconCmdline = { fg = c.blue, bg = c.bg }
+        hl.NoiceCmdlinePopupBorderLua = { link = "NoiceCmdlinePopupBorder" }
+        hl.LunaVimCmdlineMenu = { link = "NoiceCmdlinePopup" }
+        hl.LunaVimCmdlineBorder = { link = "NoiceCmdlinePopupBorder" }
 
         -- Treesitter context
         hl.TreesitterContext = { bg = surface.sidebar }

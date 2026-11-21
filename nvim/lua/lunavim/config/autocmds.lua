@@ -1,5 +1,19 @@
 local M = {}
 
+local function show_cursorline(win, visible)
+  local config = vim.api.nvim_win_get_config(win)
+  if config.relative ~= "" or config.external then
+    return
+  end
+  if visible and vim.w[win].auto_cursorline then
+    vim.w[win].auto_cursorline = nil
+    vim.wo[win][0].cursorline = true
+  elseif not visible and vim.wo[win].cursorline then
+    vim.wo[win][0].cursorline = false
+    vim.w[win].auto_cursorline = true
+  end
+end
+
 local function cleanup_buffer(buf)
   if not vim.api.nvim_buf_is_valid(buf) or not vim.api.nvim_buf_is_loaded(buf) then
     return
@@ -12,21 +26,38 @@ end
 
 function M.setup()
   local cursorline = vim.api.nvim_create_augroup("LunaVimCursorLine", { clear = true })
-  vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
+  local previous_win
+  vim.api.nvim_create_autocmd("WinLeave", {
     group = cursorline,
     callback = function()
-      if vim.w.auto_cursorline then
-        vim.w.auto_cursorline = false
-        vim.wo.cursorline = true
-      end
+      -- :tab split copies window options between WinLeave and WinEnter.
+      previous_win = vim.api.nvim_get_current_win()
     end,
   })
-  vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
+  vim.api.nvim_create_autocmd("WinEnter", {
     group = cursorline,
     callback = function()
-      if vim.wo.cursorline then
-        vim.w.auto_cursorline = true
-        vim.wo.cursorline = false
+      local win = vim.api.nvim_get_current_win()
+      if previous_win and previous_win ~= win and vim.api.nvim_win_is_valid(previous_win) then
+        show_cursorline(previous_win, false)
+      end
+      previous_win = nil
+      show_cursorline(win, not vim.fn.mode():match "^[iR]")
+    end,
+  })
+  vim.api.nvim_create_autocmd("ModeChanged", {
+    group = cursorline,
+    pattern = { "*:[iR]*", "[iR]*:*" },
+    callback = function()
+      show_cursorline(0, not vim.v.event.new_mode:match "^[iR]")
+    end,
+  })
+  vim.api.nvim_create_autocmd("OptionSet", {
+    group = cursorline,
+    pattern = "cursorline",
+    callback = function()
+      if vim.v.option_command ~= "setglobal" then
+        vim.w.auto_cursorline = nil
       end
     end,
   })

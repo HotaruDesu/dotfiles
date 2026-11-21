@@ -60,7 +60,6 @@ return {
         underline = true,
         update_in_insert = false,
         virtual_text = { spacing = 4, source = "if_many", prefix = "●" },
-        -- virtual_lines = true,
         severity_sort = true,
         signs = {
           text = {
@@ -98,7 +97,6 @@ return {
         -- have other formatters configured.
         ["_"] = { "trim_whitespace" },
       },
-      -- format_on_save = { timeout_ms = 500, lsp_format = "fallback" },
     },
     config = function(_, opts)
       local conform = require "conform"

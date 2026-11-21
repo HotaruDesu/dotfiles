@@ -57,7 +57,7 @@ function M.start(options)
     -- Audit once off the UI thread: fd and rg have different ignore semantics.
     local files = inventory({ "fd", "--type", "f", "--type", "l", "--color", "never", "-E", ".git", "--print0", "." }, indexed)
     local grep = inventory({ "rg", "--files", "--null", "--glob=!.git", "--glob=!.bare" }, indexed)
-    send(0, { root = root, files = progress.scanned_files_count, ready = true, compatible = { files = files, grep = grep }, rss = vim.uv.resident_set_memory() })
+    send(0, { files = progress.scanned_files_count, ready = true, compatible = { files = files, grep = grep }, rss = vim.uv.resident_set_memory() })
   end)
   if not ok then
     send(0, nil, tostring(err))

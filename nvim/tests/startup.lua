@@ -13,6 +13,11 @@ end
 local smoke = [[
 assert(LunaVim == require("lunavim"))
 require("lunavim.config").setup()
+assert(vim.o.guicursor:find("i-ci-ve:ver25-Cursor/lCursor", 1, true))
+for _, mode in ipairs { "n", "i", "v" } do
+  assert(vim.fn.maparg("<D-s>", mode) == "<Cmd>silent update<CR>")
+end
+assert(Snacks.config.scroll.enabled == (vim.g.neovide ~= true))
 vim.api.nvim_buf_set_lines(0, 0, -1, false, { "class T {};" })
 vim.bo.filetype = "cpp"
 assert(vim.treesitter.highlighter.active[vim.api.nvim_get_current_buf()])

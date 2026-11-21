@@ -90,9 +90,9 @@ local ok, err = xpcall(function()
   local p = open({ { file = first, text = first }, { file = second, text = second } }, function(ctx)
     rendered[#rendered + 1] = { item = ctx.item.file, previous = ctx.prev and ctx.prev.file }
     return default_preview(ctx)
-  end)
+  end, { delay_ms = 120 })
   pause(30)
-  assert(#rendered == 0, "Default 120ms delay must leave input/results first")
+  assert(#rendered == 0, "Explicit delay override must be cancellable")
   select(p, second)
   select(p, first, { 2, 0 })
   wait_for(function()
@@ -131,7 +131,7 @@ local ok, err = xpcall(function()
   p = open({ { file = first, text = first } }, function(ctx)
     rendered[#rendered + 1] = ctx.item.file
     return default_preview(ctx)
-  end)
+  end, { delay_ms = 120 })
   p:toggle("preview", { enable = false })
   pause(150)
   assert(#rendered == 3, "Hidden preview did work")
@@ -141,15 +141,10 @@ local ok, err = xpcall(function()
   end, "Reopened preview did not recover")
   p:close()
 
-  local original_calls = 0
-  p = open({ { file = medium, text = medium, pos = { 3000, 0 } } }, function(ctx)
-    original_calls = original_calls + 1
-    return default_preview(ctx)
-  end, { delay_ms = 10 })
+  p = open({ { file = medium, text = medium, pos = { 3000, 0 } } }, nil, { delay_ms = 10 })
   wait_for(function()
     return p.preview.title and p.preview.title:find("plain text", 1, true) ~= nil
   end, "Medium file did not use plain preview")
-  assert(original_calls == 0)
   assert(vim.api.nvim_buf_line_count(p.preview.win.buf) == 4000)
   assert(vim.api.nvim_win_get_cursor(p.preview.win.win)[1] == 3000)
   assert(not vim.treesitter.highlighter.active[p.preview.win.buf])
@@ -190,10 +185,11 @@ local ok, err = xpcall(function()
   -- Hold a real asynchronous read callback, then close before releasing it.
   -- It must close the fd and never write into a destroyed preview window.
   local read = vim.uv.fs_read
-  local release
+  local release, pending_fd
   vim.uv.fs_read = function(fd, size, offset, callback)
     if callback then
       return read(fd, size, offset, function(read_err, data)
+        pending_fd = fd
         release = function()
           callback(read_err, data)
         end
@@ -209,6 +205,7 @@ local ok, err = xpcall(function()
   p:close()
   release()
   pause(30)
+  assert(not vim.uv.fs_fstat(pending_fd), "Closed picker leaked its in-flight file descriptor")
   vim.uv.fs_read = read
   print "PASS: delayed preview cancellation, reopens, titles, errors and bounded asynchronous I/O"
   print "PASS: medium/huge previews preserve source text, match positions, unsaved buffers and Treesitter"

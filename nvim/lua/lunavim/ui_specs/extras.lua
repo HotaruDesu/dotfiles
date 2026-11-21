@@ -40,9 +40,6 @@ return {
     },
     opts = {
       backend = "vim",
-      backend_opts = {
-        enabled_dirs = { "src", "include" },
-      },
     },
     config = function(_, opts)
       require("tiny-code-action").setup(opts)

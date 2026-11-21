@@ -17,7 +17,7 @@ M.clangd = {
     "--background-index", -- create index in background
     "--clang-tidy", -- activate clang-tidy
     "--header-insertion=iwyu", -- include header automatically
-    "--completion-style=detailed", -- completion style when you typing
+    "--completion-style=bundled", -- Show overloads together in the completion menu.
     "--function-arg-placeholders=1", -- function placeholders for <Tab>
     "--fallback-style=llvm",
   },
